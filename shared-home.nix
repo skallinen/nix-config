@@ -70,6 +70,9 @@
   programs.zsh = {
     enable = true;
     enableCompletion = true;
+    shellAliases = if pkgs.stdenv.isDarwin then {
+      aerospace = "/Applications/AeroSpace.app/Contents/MacOS/aerospace";
+    } else {};
     initExtra = ''
       # Docker Context Switching (macOS only - Docker Desktop)
       if [ "$(uname)" = "Darwin" ] && command -v docker >/dev/null 2>&1; then

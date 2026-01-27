@@ -55,7 +55,8 @@
       "brewsci/homebrew-science"
       "nikitabobko/tap"
       "d12frosted/emacs-plus"
-      "d12frosted/emacs-plus"
+      "wedow/tools"
+
       # "local/emacs-deps" # <--- Disabled broken custom tap
     ];
 
@@ -78,6 +79,7 @@
       "ollama" "syncthing"
       "w3m" "pandoc"
       "mu" "isync"
+      "wedow/tools/ticket"
     ];
 
     # GUI Applications
@@ -133,7 +135,14 @@
   # --- User Setup ---
   users.users.samikallinen.home = "/Users/samikallinen";
   users.users.samikallinen.shell = pkgs.zsh;
-  programs.zsh.enable = true; 
+  programs.zsh = {
+    enable = true;
+    interactiveShellInit = ''
+      if [ -d /opt/homebrew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      fi
+    '';
+  }; 
 
   # --- Home Manager (Mac Specifics) ---
   home-manager.backupFileExtension = "backup";
@@ -164,7 +173,7 @@
                     conditions = [
                       {
                         type = "input_source_if";
-                        input_sources = [{ language = "^en$"; }];
+                        input_sources = [{ language = "^en.*$"; }];
                       }
                     ];
                     from = {
