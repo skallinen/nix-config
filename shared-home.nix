@@ -17,6 +17,14 @@
     tokei
     tree
     wget
+    pngpaste
+
+    # CLI Tools for Flutter & Clojure
+    flutter
+    cocoapods
+    clojure
+    clj-kondo
+    clojure-lsp
   ];
 
   # --- Shared Program Configurations ---

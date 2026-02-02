@@ -49,6 +49,7 @@
     };
 
     taps = [
+      "anomalyco/tap"
       "railwaycat/emacsmacport"
       "pharo-project/pharo"
       "koekeishiya/formulae"
@@ -62,6 +63,7 @@
 
     # CLI Packages via Brew (Mac-specific or preferred over Nix)
     brews = [
+      "opencode"
       # Build & Toolchain
       "autoconf" "automake" "libtool" "pkg-config"
       "isl" "libmpc" "mpfr"
@@ -107,7 +109,7 @@
       "pdf-pals" "spaceid"
       
       # Security & Misc
-      "1password" "claude" "opencpn" "supercollider"
+      "1password" "claude" "opencpn" "supercollider" "displaylink"
     ];
 
     masApps = {
