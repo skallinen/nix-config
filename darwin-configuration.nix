@@ -84,6 +84,8 @@
 
     # GUI Applications
     casks = [
+      # mouse
+      "logi-options+"
       # Browsers
       "firefox" "google-chrome"
       
