@@ -79,6 +79,14 @@
     enable = true;
     settings.user.name  = "Sami Kallinen";
     settings.user.email = "notjustsilicon@gmail.com";
+    # Identity follows the directory tree, so the right address is used without
+    # a per-repo setting and without depending on remembering to set one.
+    includes = [
+      {
+        condition = "gitdir:~/common/geomatikk/";
+        contents.user.email = "sami@kpsystem.se";
+      }
+    ];
   };
 
   programs.starship = {
