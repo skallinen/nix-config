@@ -1,13 +1,6 @@
 { pkgs, lib, config, ... }:
 
 {
-  # The hardware is a MacBook Pro (Mac16,7, M4 Pro). This said "Air" until 2026-09-01 —
-  # a Migration Assistant leftover: macOS set ComputerName from the new machine ("Sami's
-  # MacBook Pro") but carried the old HostName/LocalHostName across, so the Sharing pane
-  # showed the right name while `hostname` and `.local` both still said Air. Nothing ever
-  # prompted a correction. ComputerName is NOT managed here, which is why the two drifted.
-  networking.hostName = "Samis-MacBook-Pro";
-
   # Required in nix-darwin 25.11+ for user-scoped options (homebrew, defaults, etc.)
   system.primaryUser = "samikallinen";
 
