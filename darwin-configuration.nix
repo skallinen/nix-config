@@ -111,49 +111,41 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      # `cleanup = "zap"` is CURRENTLY A NO-OP that also makes every
-      # `darwin-rebuild switch` exit 1 (observed 2026-08-04). nix-darwin
-      # implements it by passing `--cleanup` to `brew bundle install`, and
-      # current Homebrew answers:
-      #   Warning: Calling the `--cleanup` switch is deprecated! There is no
-      #   replacement.
-      # It then only PRINTS "Would uninstall …" and returns non-zero. Nothing is
-      # removed, and the non-zero return fails the activation script even though
-      # the bundle itself reported "complete!".
-      # So undeclared packages must be removed by hand for now:
+      # `cleanup = "zap"` MUST NOT come back. nix-darwin implements it by passing
+      # `--cleanup` to `brew bundle`, and current Homebrew answers:
+      #   Error: Calling the `--cleanup` switch is disabled! There is no replacement.
+      #
+      # That is a hard error as of 2026-09-10. It was a deprecation WARNING on
+      # 2026-08-04, which is why the note above concluded it was cosmetic, and why
+      # a same-day "correction" (since removed) concluded the opposite. Homebrew
+      # changed under both of them.
+      #
+      # The exit code is the least of it. Activation runs under `set -e`, and the
+      # bundle step sits ~50 lines before `ln -sfn ... /run/current-system`, so a
+      # non-zero bundle ABANDONS the tail of the script. The system profile
+      # advances to the new generation while /run/current-system still points at
+      # the old one. Nothing announces this: `darwin-rebuild` prints homebrew's
+      # output last, so a failed switch reads as a brew warning.
+      #
+      # Observed twice, on two machines, before the cause was believed:
+      #   2026-09-01 (Pro): three consecutive switches exited 1, each dying at
+      #     "Homebrew bundle..." after printing "Would uninstall formulae:" /
+      #     "Would uninstall casks:" and nothing else. A hostname rename went into
+      #     generation 59 without ever becoming the running system.
+      #   2026-09-10 (Air): the running system was still the 2026-08-07 generation,
+      #     a month of rebuilds later, every one of which had "succeeded".
+      #
+      # A second, quieter cost: the bundle dies before installing anything, so
+      # declared brews and casks silently stop being installed as well. On the Air
+      # this had hidden 47 outstanding dependencies, including a declared `claude`
+      # cask that was simply absent.
+      #
+      # "none" gives up nothing. "zap" never actually removed a package — it only
+      # ever printed "Would uninstall ...". Pruning undeclared packages stays a hand
+      # job, as it already was:
       #   brew bundle cleanup --file=<the generated Brewfile> --force
-      # (and see the tap-trust trap above — that command lies about success when
-      # an untrusted tap aborts it).
-      #
-      # CORRECTION (2026-08-04, later the same day): the "exit 1" half of the
-      # note above no longer reproduces. With tap trust granted in preActivation,
-      # two consecutive `darwin-rebuild switch` runs exit 0. The deprecation
-      # warning is still printed, but it is only a warning now — activation is
-      # not failed by it. The earlier exit 1 was most likely the untrusted tap
-      # aborting the bundle, not `--cleanup` itself.
-      # Still verified true: nothing is actually removed, so undeclared packages
-      # must be pruned by hand.
-      #
-      # RE-CORRECTION (2026-09-01): the correction above is WRONG. `exit 1` does
-      # reproduce, and tap trust is not the cause — trust.json listed all four
-      # taps and preActivation logged "trusting homebrew taps..." successfully on
-      # the failing run. Three consecutive `darwin-rebuild switch` runs exited 1,
-      # every one of them dying at "Homebrew bundle..." after printing
-      # "Would uninstall formulae:" / "Would uninstall casks:" and nothing else.
-      #
-      # That matters more than a cosmetic exit code, because activation runs under
-      # `set -e`: the bundle step is ~line 200 of the activate script and
-      # `ln -sfn … /run/current-system` is ~line 2563, so a non-zero bundle
-      # ABANDONS the last 2300 lines. The system profile advances to the new
-      # generation while /run/current-system still points at the old one, and the
-      # rename that prompted this went into generation 59 without ever becoming
-      # the running system. Nothing announces that; `darwin-rebuild` prints
-      # homebrew's output last, so the failure looks like a homebrew warning.
-      #
-      # So: "none". It gives up nothing — "zap" removed nothing anyway, by the
-      # note above — and it buys back an activation that completes. Pruning
-      # undeclared packages stays a hand job, as it already was:
-      #   brew bundle cleanup --file=<the generated Brewfile> --force
+      # (and see the tap-trust trap below: that command lies about success when an
+      # untrusted tap aborts it.)
       cleanup = "none";
     };
 
