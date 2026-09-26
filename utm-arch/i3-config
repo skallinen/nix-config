@@ -225,6 +225,12 @@ mode "resize" {
 }
 
 bindsym $mod+r mode "resize"
+
+# Notifications (dunst, utm-home.nix). Super+N closes the top one, Super+Shift+N
+# toggles do not disturb (the bar shows a bell with a slash while it is on).
+exec --no-startup-id systemctl --user start dunst
+bindsym $mod+n exec --no-startup-id dunstctl close
+bindsym $mod+Shift+n exec --no-startup-id house-dnd
 bar {
 	# The M3800 bar: black, workspaces on the left, i3status on the right. Ink
 	# instead of pure black, the rust accent instead of its #007fff blue.

@@ -101,6 +101,7 @@ in
     xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
     xsetroot                 # i3 paints the linen desktop with it
     jq                       # utm-arch build/agent-desktop.sh edits agent's settings.json with it
+    libnotify                # notify-send, for scripts and the agent's notifications
     # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
     # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
     # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so
@@ -115,6 +116,12 @@ in
     # the agent of the active logind session, and with none there it closes the
     # virtio port, so UTM sees no agent and sends no size or clipboard. Started from
     # ssh it lands in the ssh session (that happened 2026-09-26), so go through i3.
+    # Do not disturb (Super+Shift+N): dunst holds notifications while paused and
+    # shows them when it resumes. The bar's bell block refreshes on signal 10.
+    (writeShellScriptBin "house-dnd" ''
+      ${dunst}/bin/dunstctl set-paused toggle
+      pkill -RTMIN+10 -x i3blocks || true
+    '')
     (writeShellScriptBin "vdagent-restart" ''
       # ~/.xinitrc imports the X session's DISPLAY into the systemd user manager.
       eval "export $(systemctl --user show-environment | grep '^DISPLAY=')"
@@ -177,6 +184,75 @@ in
       theme[process_mid]="${muted}"
       theme[process_end]="${rust}"
     '';
+  };
+
+  # Notifications (Omarchy's mako, as dunst on X11): top right, a white card in a
+  # square ink frame, rust only for critical ones, which also stay until closed.
+  # Sizes are Omarchy's at 1x; `scale = 2` doubles them for the VM's 2x.
+  # D-Bus starts dunst on the first notification (its service file is in
+  # ~/.local/share/dbus-1/services); i3 also starts it with the session.
+  # Keys (i3-config): Super+N closes the top one, Super+Shift+N toggles do not
+  # disturb, the menu (Super+Shift+D) has the history.
+  services.dunst = {
+    enable = true;
+    settings = with palette.colours; {
+      global = {
+        scale = 2;
+        origin = "top-right";
+        offset = "(20, 20)";
+        width = 420;
+        height = "(0, 300)";
+        notification_limit = 5;
+        # No gaps between cards: without a compositor the gap is drawn black. One
+        # frame-coloured rule between them instead.
+        gap_size = 0;
+        separator_height = palette.border;
+        padding = 12;
+        horizontal_padding = 16;
+        text_icon_padding = 0;
+        frame_width = palette.border;
+        frame_color = ink;
+        separator_color = "frame";
+        corner_radius = 0;
+        progress_bar_corner_radius = 0;
+        progress_bar_frame_width = 0;
+        highlight = rust;
+        font = "${palette.fonts.sans} Medium 9";
+        markup = "full";
+        # The summary as a house label (bold, uppercase, letter-spaced), then the body.
+        format = "<span weight='bold' size='small' text_transform='uppercase' letter_spacing='1100'>%s</span>\\n%b";
+        alignment = "left";
+        vertical_alignment = "top";
+        word_wrap = true;
+        ellipsize = "end";
+        icon_position = "off";
+        show_indicators = false;
+        mouse_left_click = "close_current";
+        mouse_right_click = "close_all";
+        mouse_middle_click = "do_action, close_current";
+        follow = "none";
+        sticky_history = true;
+        history_length = 30;
+      };
+      urgency_low = {
+        background = white;
+        foreground = muted;
+        frame_color = ink;
+        timeout = 4;
+      };
+      urgency_normal = {
+        background = white;
+        foreground = ink;
+        frame_color = ink;
+        timeout = 6;
+      };
+      urgency_critical = {
+        background = white;
+        foreground = ink;
+        frame_color = rust;
+        timeout = 0;
+      };
+    };
   };
 
   # Claude Code in the house colours. Claude Code is not installed for sakalli yet
