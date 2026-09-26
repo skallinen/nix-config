@@ -30,9 +30,9 @@
     babashka     # runtime for clojure-mcp-light bbin scripts
 
     # JS/TS Development Toolchain
-    nodePackages.typescript
-    nodePackages.typescript-language-server
-    nodePackages.prettier
+    typescript
+    typescript-language-server
+    prettier
     prettierd
     tailwindcss-language-server
 
@@ -101,6 +101,11 @@
 
   programs.ssh = {
     enable = true;
+    # HM 26.05 warns that its implicit "Host *" defaults will go away. They were
+    # OpenSSH's own defaults anyway, so dropping the block changes nothing.
+    enableDefaultConfig = false;
+    # extraConfig needs a declared "Host *" block; an empty one is enough.
+    settings."*" = { };
     extraConfig = if pkgs.stdenv.isDarwin then ''
       Host *
         IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
