@@ -456,6 +456,13 @@ in
     source = ./utm-arch/agent/agent-claude;
     executable = true;
   };
+  # The desktop skill (Omarchy's omarchy skill, our own): where the config lives,
+  # the house style, the decisions not to reopen. For agent (copied by
+  # build/agent-desktop.sh) and for a Claude Code run as sakalli.
+  home.file.".local/share/house-agent/skills/utm-desktop/SKILL.md".source =
+    ./utm-arch/agent/skills/utm-desktop/SKILL.md;
+  home.file.".claude/skills/utm-desktop/SKILL.md".source =
+    ./utm-arch/agent/skills/utm-desktop/SKILL.md;
 
   # Claude Code in the house colours. Claude Code is not installed for sakalli yet
   # (agent runs it, D7), but the theme is ready if it is. settings.json stays a
