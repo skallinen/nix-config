@@ -19,9 +19,49 @@ let
     font_sans = palette.fonts.sans;
     font_mono = palette.fonts.mono;
   }
-  # @ansi_dark_0@ to @ansi_dark_15@, @ansi_light_0@ to @ansi_light_15@
-  // builtins.listToAttrs (lib.imap0 (i: c: { name = "ansi_dark_${toString i}"; value = c; }) palette.ansi.dark)
-  // builtins.listToAttrs (lib.imap0 (i: c: { name = "ansi_light_${toString i}"; value = c; }) palette.ansi.light);
+  # @ansi_0@ to @ansi_15@
+  // builtins.listToAttrs (lib.imap0 (i: c: { name = "ansi_${toString i}"; value = c; }) palette.ansi);
+  # The Claude Code theme (house.json), Omarchy's claude.json.tpl idea in the house
+  # colours. Format: code.claude.com/docs/en/terminal-config, "Create a custom
+  # theme": a file in ~/.claude/themes/, selected as "custom:house". The light
+  # preset underneath, so tokens not set here fall back to it. build/agent-desktop.sh
+  # in utm-arch copies the same file to agent.
+  claudeTheme = with palette.colours; with palette.tints; builtins.toJSON {
+    name = "House";
+    base = "light";
+    overrides = {
+      claude = rust;              # the accent: spinner, assistant label
+      claudeShimmer = rustLight;
+      text = ink;
+      inverseText = white;
+      inactive = muted;
+      inactiveShimmer = dim;
+      subtle = dim;
+      suggestion = rust;
+      permission = ink;           # dialog borders: the house's black line
+      permissionShimmer = muted;
+      promptBorder = ink;
+      promptBorderShimmer = muted;
+      success = builtins.elemAt palette.ansi 2;   # olive
+      warning = builtins.elemAt palette.ansi 3;   # ochre, also the auto mode tag
+      error = rust;
+      userMessageBackground = linen;
+      userMessageBackgroundHover = linenDeep;
+      bashMessageBackgroundColor = linen;
+      memoryBackgroundColor = linen;
+      selectionBg = selection;
+      diffAdded = olivePale;
+      diffRemoved = rustPale;
+      diffAddedDimmed = olivePaler;
+      diffRemovedDimmed = rustPaler;
+      diffAddedWord = oliveWord;
+      diffRemovedWord = rustWord;
+      rate_limit_fill = rust;
+      rate_limit_empty = linen;
+      briefLabelYou = ink;
+      briefLabelClaude = rust;
+    };
+  };
   themed = file: builtins.replaceStrings
     (map (n: "@${n}@") (builtins.attrNames tokens))
     (builtins.attrValues tokens)
@@ -60,6 +100,7 @@ in
     fira-code-symbols        # fira-code-mode in myinit.org (Linux only)
     xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
     xsetroot                 # i3 paints the linen desktop with it
+    jq                       # utm-arch build/agent-desktop.sh edits agent's settings.json with it
     # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
     # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
     # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so
@@ -83,60 +124,73 @@ in
     '')
   ];
 
-  # btop in the house colours on the ink terminal: linen text, rust for "here" and
-  # for the hot end of every graph, graphite box lines.
+  # btop in the house colours on the white terminal: ink text, rust for "here" and
+  # for the hot end of every graph, quiet grey box lines.
   programs.btop = {
     enable = true;
     settings = {
       color_theme = "house";
-      theme_background = false;   # the terminal's own ink ground
+      theme_background = false;   # the terminal's own white ground
       rounded_corners = false;    # square, as every other surface
     };
     themes.house = with palette.colours; ''
-      theme[main_bg]="${ink}"
-      theme[main_fg]="${linen}"
-      theme[title]="${linen}"
-      theme[hi_fg]="${rustLight}"
+      theme[main_bg]="${white}"
+      theme[main_fg]="${ink}"
+      theme[title]="${ink}"
+      theme[hi_fg]="${rust}"
       theme[selected_bg]="${rust}"
       theme[selected_fg]="${white}"
-      theme[inactive_fg]="${muted}"
-      theme[graph_text]="${dim}"
-      theme[meter_bg]="${graphite}"
-      theme[proc_misc]="${dim}"
-      theme[cpu_box]="${graphite}"
-      theme[mem_box]="${graphite}"
-      theme[net_box]="${graphite}"
-      theme[proc_box]="${graphite}"
-      theme[div_line]="${graphite}"
-      theme[temp_start]="${dim}"
-      theme[temp_mid]="${linen}"
+      theme[inactive_fg]="${dim}"
+      theme[graph_text]="${muted}"
+      theme[meter_bg]="${linen}"
+      theme[proc_misc]="${muted}"
+      theme[cpu_box]="${dim}"
+      theme[mem_box]="${dim}"
+      theme[net_box]="${dim}"
+      theme[proc_box]="${dim}"
+      theme[div_line]="${dim}"
+      theme[temp_start]="${muted}"
+      theme[temp_mid]="${ink}"
       theme[temp_end]="${rust}"
       theme[cpu_start]="${dim}"
-      theme[cpu_mid]="${linen}"
-      theme[cpu_end]="${rustLight}"
-      theme[free_start]="${muted}"
-      theme[free_mid]="${dim}"
-      theme[free_end]="${linen}"
-      theme[cached_start]="${muted}"
-      theme[cached_mid]="${dim}"
-      theme[cached_end]="${linen}"
-      theme[available_start]="${muted}"
-      theme[available_mid]="${dim}"
-      theme[available_end]="${linen}"
-      theme[used_start]="${dim}"
+      theme[cpu_mid]="${muted}"
+      theme[cpu_end]="${rust}"
+      theme[free_start]="${dim}"
+      theme[free_mid]="${muted}"
+      theme[free_end]="${ink}"
+      theme[cached_start]="${dim}"
+      theme[cached_mid]="${muted}"
+      theme[cached_end]="${ink}"
+      theme[available_start]="${dim}"
+      theme[available_mid]="${muted}"
+      theme[available_end]="${ink}"
+      theme[used_start]="${muted}"
       theme[used_mid]="${rustLight}"
       theme[used_end]="${rust}"
-      theme[download_start]="${muted}"
-      theme[download_mid]="${dim}"
-      theme[download_end]="${linen}"
-      theme[upload_start]="${muted}"
-      theme[upload_mid]="${dim}"
-      theme[upload_end]="${rustLight}"
+      theme[download_start]="${dim}"
+      theme[download_mid]="${muted}"
+      theme[download_end]="${ink}"
+      theme[upload_start]="${dim}"
+      theme[upload_mid]="${rustLight}"
+      theme[upload_end]="${rust}"
       theme[process_start]="${dim}"
-      theme[process_mid]="${linen}"
-      theme[process_end]="${rustLight}"
+      theme[process_mid]="${muted}"
+      theme[process_end]="${rust}"
     '';
   };
+
+  # Claude Code in the house colours. Claude Code is not installed for sakalli yet
+  # (agent runs it, D7), but the theme is ready if it is. settings.json stays a
+  # normal file, since Claude Code writes to it: the activation only sets "theme".
+  home.file.".claude/themes/house.json".text = claudeTheme;
+  home.activation.claudeHouseTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.claude/settings.json"
+      mkdir -p "$HOME/.claude"
+      [ -s "$f" ] || echo '{}' > "$f"
+      ${pkgs.jq}/bin/jq '.theme = "custom:house"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    fi
+  '';
 
   programs.emacs = {
     enable = true;

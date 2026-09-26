@@ -10,31 +10,35 @@ font-size = 12
 # nerd-fonts.roboto-mono in utm-home.nix.
 font-family = "RobotoMono Nerd Font"
 
-# The house colours (utm-arch wiki/utm-theme.md): ink ground as the i3 bar, linen
-# text, the rust accent for the cursor and the selection. The 16 ANSI colours are
-# palette.nix's `ansi.dark`: muted, with rust for red, after Omarchy's flexoki.
+# The house colours (utm-arch wiki/utm-theme.md): a white card with ink text,
+# as the house pages, framed by i3's ink or rust border on the linen desktop. The
+# rust accent for the cursor and the selection. White, not the M3800's black,
+# because Claude Code runs here in its light house theme (~/.claude/themes/house.json),
+# which is unreadable on a dark ground. The 16 ANSI colours are palette.nix's
+# `ansi`: muted, rust for red, after Omarchy's flexoki-light.
 # Values from utm-arch/palette.nix (utm-home.nix fills the @tokens@).
-background = @ink@
-foreground = @linen@
+background = @white@
+foreground = @ink@
 cursor-color = @rust@
+cursor-text = @white@
 selection-background = @rust@
 selection-foreground = @white@
-palette = 0=@ansi_dark_0@
-palette = 1=@ansi_dark_1@
-palette = 2=@ansi_dark_2@
-palette = 3=@ansi_dark_3@
-palette = 4=@ansi_dark_4@
-palette = 5=@ansi_dark_5@
-palette = 6=@ansi_dark_6@
-palette = 7=@ansi_dark_7@
-palette = 8=@ansi_dark_8@
-palette = 9=@ansi_dark_9@
-palette = 10=@ansi_dark_10@
-palette = 11=@ansi_dark_11@
-palette = 12=@ansi_dark_12@
-palette = 13=@ansi_dark_13@
-palette = 14=@ansi_dark_14@
-palette = 15=@ansi_dark_15@
+palette = 0=@ansi_0@
+palette = 1=@ansi_1@
+palette = 2=@ansi_2@
+palette = 3=@ansi_3@
+palette = 4=@ansi_4@
+palette = 5=@ansi_5@
+palette = 6=@ansi_6@
+palette = 7=@ansi_7@
+palette = 8=@ansi_8@
+palette = 9=@ansi_9@
+palette = 10=@ansi_10@
+palette = 11=@ansi_11@
+palette = 12=@ansi_12@
+palette = 13=@ansi_13@
+palette = 14=@ansi_14@
+palette = 15=@ansi_15@
 
 # Flat and square like every other surface: no GTK window frame (GTK drew a 5 px
 # grey edge inside i3's border), and a little room between the border and the text.

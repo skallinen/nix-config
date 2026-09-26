@@ -22,20 +22,28 @@ rec {
     rustBright = "#e2572a"; # brighter rust on ink (errors on the bar)
   };
 
-  # 16 ANSI colours. Modelled on Omarchy's flexoki-light and flexoki (muted red,
-  # ochre, olive, teal, blue, plum), with red swapped for the house rust.
-  ansi = {
-    # On the white agent terminal (the Claude Code light theme needs a light ground).
-    light = [
-      "#111111" "#a9431e" "#5e700a" "#9a6a00" "#205ea6" "#8e2f63" "#1f7a72" "#6b645e"
-      "#8c8580" "#c4562e" "#768a2a" "#b8860b" "#3f78b0" "#b24d82" "#2f9a90" "#EEE7E1"
-    ];
-    # On the ink shell terminal.
-    dark = [
-      "#333333" "#d9825f" "#99ab4a" "#d8ae3a" "#5e97c9" "#d576a6" "#4fb5ab" "#cfc8c2"
-      "#6b645e" "#e2572a" "#b0c25c" "#e6c25a" "#7fb0dc" "#e391ba" "#6fcbc1" "#ffffff"
-    ];
+  # Pale tints for backgrounds on white (Claude Code's diffs, selections, hover):
+  # the olive and rust of the ANSI set, mixed towards white.
+  tints = {
+    linenDeep = "#e2d9d1";     # linen one step darker: hover
+    rustPale = "#f5dcd2";      # removed lines
+    rustPaler = "#f9ece6";     # removed lines, dimmed
+    rustWord = "#e9b39c";      # removed words
+    olivePale = "#e4ebcf";     # added lines
+    olivePaler = "#f0f3e5";    # added lines, dimmed
+    oliveWord = "#c9d79c";     # added words
+    selection = "#f0d5c9";     # mouse selection
   };
+
+  # 16 ANSI colours for the terminal, which is white with ink text (a light ground,
+  # as the house pages, and the one the Claude Code light theme is drawn for).
+  # Modelled on Omarchy's flexoki-light (muted red, ochre, olive, teal, blue,
+  # plum), with red swapped for the house rust; white and bright white are dark
+  # enough to read on white.
+  ansi = [
+    "#111111" "#a9431e" "#5e700a" "#9a6a00" "#205ea6" "#8e2f63" "#1f7a72" "#6b645e"
+    "#8c8580" "#c4562e" "#768a2a" "#b8860b" "#3f78b0" "#b24d82" "#2f9a90" "#111111"
+  ];
 
   # One border width everywhere, Omarchy's 2 (the nearest whole number to the house
   # 1.5px). i3 counts its border and gap sizes in logical pixels and doubles them
