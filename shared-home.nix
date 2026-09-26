@@ -121,7 +121,7 @@
     enable = true;
     enableCompletion = true;
     shellAliases = if pkgs.stdenv.isDarwin then {
-      aerospace = "/Applications/AeroSpace.app/Contents/MacOS/aerospace";
+      aerospace = "/opt/homebrew/bin/aerospace"; # the CLI; the app binary rejects list-windows and mode
     } else {};
     initContent = ''
       # Docker Context Switching (macOS only - Docker Desktop)

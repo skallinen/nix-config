@@ -343,7 +343,7 @@
           complex_modifications = {
             rules = [
               {
-                description = "Cmd+Space -> Toggle Input Source (US <-> Swedish)";
+                description = "Cmd+Space -> Toggle Input Source (US <-> Swedish), not in UTM";
                 manipulators = [
                   {
                     type = "basic";
@@ -351,6 +351,10 @@
                       {
                         type = "input_source_if";
                         input_sources = [{ language = "^en.*$"; }];
+                      }
+                      {
+                        type = "frontmost_application_unless";
+                        bundle_identifiers = ["^com\\.utmapp\\.UTM$"];
                       }
                     ];
                     from = {
@@ -366,6 +370,10 @@
                         type = "input_source_if";
                         input_sources = [{ language = "^sv$"; }];
                       }
+                      {
+                        type = "frontmost_application_unless";
+                        bundle_identifiers = ["^com\\.utmapp\\.UTM$"];
+                      }
                     ];
                     from = {
                       key_code = "spacebar";
@@ -376,6 +384,12 @@
                   # Fallback if neither matches (assume we want English)
                   {
                     type = "basic";
+                    conditions = [
+                      {
+                        type = "frontmost_application_unless";
+                        bundle_identifiers = ["^com\\.utmapp\\.UTM$"];
+                      }
+                    ];
                     from = {
                       key_code = "spacebar";
                       modifiers = { mandatory = ["left_command"]; };
@@ -385,10 +399,16 @@
                 ];
               }
               {
-                description = "Cmd+D -> Cmd+Space (Spotlight)";
+                description = "Cmd+D -> Cmd+Space (Spotlight), not in UTM";
                 manipulators = [
                   {
                     type = "basic";
+                    conditions = [
+                      {
+                        type = "frontmost_application_unless";
+                        bundle_identifiers = ["^com\\.utmapp\\.UTM$"];
+                      }
+                    ];
                     from = {
                       key_code = "d";
                       modifiers = { mandatory = ["left_command"]; };
@@ -399,22 +419,6 @@
                         modifiers = ["left_command"];
                       }
                     ];
-                  }
-                ];
-              }
-              {
-                description = "Right Cmd → Super when UTM focused";
-                manipulators = [
-                  {
-                    type = "basic";
-                    conditions = [
-                      {
-                        type = "frontmost_application_if";
-                        bundle_identifiers = ["^com\\.utmapp\\.UTM$"];
-                      }
-                    ];
-                    from = { key_code = "right_command"; };
-                    to = [{ key_code = "left_gui"; }];
                   }
                 ];
               }
