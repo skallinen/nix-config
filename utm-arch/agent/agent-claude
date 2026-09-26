@@ -1,0 +1,31 @@
+#!/bin/bash
+# Claude Code as agent, in one of agent's clones, in auto mode (D21; Omarchy's
+# omarchy-agent does the same with --permission-mode auto). Installed by utm-arch
+# build/agent-desktop.sh as /usr/local/bin/agent-claude; sakalli may run it as
+# agent without a password (/etc/sudoers.d/50-agent-claude, this one command).
+#
+#   agent-claude --list            the projects in ~agent/src
+#   agent-claude PROJECT [TASK]    start Claude Code there, with TASK as the prompt
+#
+# sakalli's side (agent-open, Super+Shift+A and Super+Shift+T) picks the project
+# with rofi and opens it in Ghostty.
+set -eu
+SRC=/home/agent/src
+if [ "${1:-}" = --list ]; then
+  cd "$SRC" && for d in */; do [ -d "$d" ] && printf '%s\n' "${d%/}"; done
+  exit 0
+fi
+proj=${1:?usage: agent-claude --list | PROJECT [TASK]}
+shift
+case $proj in
+  ''|.*|*[!A-Za-z0-9._-]*) echo "agent-claude: bad project name: $proj" >&2; exit 2 ;;
+esac
+[ -d "$SRC/$proj" ] || { echo "agent-claude: no $SRC/$proj" >&2; exit 2; }
+[ $# -le 1 ] || { echo "agent-claude: the task is one argument" >&2; exit 2; }
+cd "$SRC/$proj"
+export HOME=/home/agent USER=agent LOGNAME=agent SHELL=/bin/bash
+export PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin
+export COLORTERM=truecolor
+# Ghostty's own terminfo (xterm-ghostty) is in sakalli's Nix profile, not here.
+infocmp "${TERM:-dumb}" >/dev/null 2>&1 || export TERM=xterm-256color
+exec claude --permission-mode auto "$@"

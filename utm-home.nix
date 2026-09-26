@@ -123,6 +123,27 @@ in
       ${dunst}/bin/dunstctl set-paused toggle
       pkill -RTMIN+10 -x i3blocks || true
     '')
+    # The agent on one key (Omarchy's omarchy-agent): Super+Shift+A picks one of
+    # agent's clones with rofi and opens Claude Code there as agent, in auto mode
+    # (D21), in its own Ghostty window; Super+Shift+T also asks for the task.
+    # agent-claude runs as agent through a one-command sudoers rule
+    # (utm-arch build/agent-desktop.sh).
+    (writeShellScriptBin "agent-open" ''
+      set -eu
+      run() { sudo -n -u agent /usr/local/bin/agent-claude "$@"; }
+      projects=$(run --list) || {
+        ${libnotify}/bin/notify-send -u critical "Agent" "agent-claude is not installed: run utm-arch build/agent-desktop.sh"
+        exit 1
+      }
+      proj=$(printf '%s\n' "$projects" | ${rofi}/bin/rofi -dmenu -i -no-custom -p AGENT) || exit 0
+      [ -n "$proj" ] || exit 0
+      task=
+      if [ "''${1:-}" = --task ]; then
+        task=$(${rofi}/bin/rofi -dmenu -p TASK -l 0 -theme-str 'entry { placeholder: "what should the agent do?"; }' < /dev/null) || exit 0
+        [ -n "$task" ] || exit 0
+      fi
+      exec ${ghostty}/bin/ghostty --class=house.agent -e sudo -n -u agent /usr/local/bin/agent-claude "$proj" ''${task:+"$task"}
+    '')
     (writeShellScriptBin "vdagent-restart" ''
       # ~/.xinitrc imports the X session's DISPLAY into the systemd user manager.
       eval "export $(systemctl --user show-environment | grep '^DISPLAY=')"
@@ -310,6 +331,7 @@ in
       command=${block "dnd" ''
         [ "$(${pkgs.dunst}/bin/dunstctl is-paused)" = true ] || exit 0
         n=$(${pkgs.dunst}/bin/dunstctl count waiting)
+        [ "''${n:-0}" -gt 0 ] || n=
         echo "󰂛 ${label "DND"}''${n:+ $n}"
       ''}
 
@@ -371,6 +393,10 @@ in
   };
   home.file.".local/share/house-agent/claude-statusline" = {
     source = ./utm-arch/agent/claude-statusline;
+    executable = true;
+  };
+  home.file.".local/share/house-agent/agent-claude" = {
+    source = ./utm-arch/agent/agent-claude;
     executable = true;
   };
 

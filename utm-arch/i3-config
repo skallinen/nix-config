@@ -231,6 +231,12 @@ bindsym $mod+r mode "resize"
 exec --no-startup-id systemctl --user start dunst
 bindsym $mod+n exec --no-startup-id dunstctl close
 bindsym $mod+Shift+n exec --no-startup-id house-dnd
+
+# The agent (agent-open in utm-home.nix): Claude Code as agent in one of its
+# clones, auto mode. Super+Shift+A picks the project, Super+Shift+T also asks
+# for the task.
+bindsym $mod+Shift+a exec --no-startup-id agent-open
+bindsym $mod+Shift+t exec --no-startup-id agent-open --task
 bar {
 	# The M3800 bar: black, workspaces on the left, status blocks on the right. Ink
 	# instead of pure black, the rust accent instead of its #007fff blue.
