@@ -12,6 +12,9 @@
   system.defaults.NSGlobalDomain.InitialKeyRepeat = 14;
   system.defaults.NSGlobalDomain.KeyRepeat = 1;
   system.defaults.spaces.spans-displays = false;
+  # UTM releases input capture with Cmd+Option instead of Control+Option, which is
+  # C-M- in the VM's Emacs. `defaults` reaches UTM's sandbox container plist.
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".AlternativeCaptureKey = true;
 
   # Spotlight & Input Source Shortcuts (Cmd+Space / Cmd+D)
   # Note: postUserActivation removed in 25.11; all activation now runs as root
