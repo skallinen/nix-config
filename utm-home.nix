@@ -255,6 +255,14 @@ in
     };
   };
 
+  # agent's half of the desktop, staged here for utm-arch build/agent-desktop.sh,
+  # which copies it (as root) to /usr/local/lib/house-agent and agent's home:
+  # agent cannot read Nix files in sakalli's home, and the palette lives here.
+  home.file.".local/share/house-agent/claude-notify" = {
+    source = ./utm-arch/agent/claude-notify;
+    executable = true;
+  };
+
   # Claude Code in the house colours. Claude Code is not installed for sakalli yet
   # (agent runs it, D7), but the theme is ready if it is. settings.json stays a
   # normal file, since Claude Code writes to it: the activation only sets "theme".

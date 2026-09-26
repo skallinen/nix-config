@@ -1,0 +1,25 @@
+#!/bin/bash
+# Claude Code hook for agent (Stop and Notification events), installed by utm-arch
+# build/agent-desktop.sh as /usr/local/lib/house-agent/claude-notify.
+#
+# agent cannot reach sakalli's session bus (other user, D7), but it writes to the
+# terminal it runs in, which is sakalli's Ghostty. Ghostty turns the OSC 777
+# escape into a desktop notification, and dunst shows it in the house style.
+# Tested 2026-09-27: printf '\e]777;notify;TITLE;BODY\a' in Ghostty reaches dunst.
+# No jq for agent, so the three fields are cut out with sed.
+in=$(cat)
+field() {
+  printf '%s' "$in" | tr -d '\n' |
+    sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" | head -n 1
+}
+event=$(field hook_event_name)
+cwd=$(field cwd)
+proj=${cwd##*/}
+case $event in
+  Stop)         title="Claude done";      body="$proj" ;;
+  Notification) title="Claude needs you"; body="$proj: $(field message)" ;;
+  *)            exit 0 ;;
+esac
+# OSC 777 splits on ';', so none may be left in the text.
+{ printf '\033]777;notify;%s;%s\007' "${title//;/,}" "${body//;/,}" > /dev/tty; } 2>/dev/null || true
+exit 0
