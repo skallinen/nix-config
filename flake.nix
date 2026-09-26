@@ -39,7 +39,11 @@
   in {
     # --- macOS Configurations ---
     darwinConfigurations = {
-      "Samis-MacBook-Air" = mkMac "Samis-MacBook-Air" ./darwin-configuration.nix;
+      # The Air also runs the utm-arch VM, so it carries the macbridge (utm-arch
+      # wiki/macbridge.md): Touch ID and 1Password for the VM.
+      "Samis-MacBook-Air" = mkMac "Samis-MacBook-Air" {
+        imports = [ ./darwin-configuration.nix ./utm-arch/macbridge/darwin.nix ];
+      };
 
       # Mac16,7 / M4 Pro. This output was called -Air until 2026-09-01: a Migration
       # Assistant leftover, where macOS set ComputerName from the new machine
@@ -58,7 +62,7 @@
     #   home-manager switch --flake ~/nix-config#sakalli@utm
     homeConfigurations."sakalli@utm" = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs { system = "aarch64-linux"; config.allowUnfree = true; };
-      modules = [ ./shared-home.nix ./utm-home.nix ];
+      modules = [ ./shared-home.nix ./utm-home.nix ./utm-arch/macbridge/home.nix ];
     };
 
     # --- NixOS VM Configuration ---
