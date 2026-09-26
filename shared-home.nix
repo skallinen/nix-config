@@ -120,16 +120,6 @@
         User sakalli
         IdentityFile ~/.ssh/utm_ed25519
         IdentitiesOnly yes
-
-      Host vm
-        HostName 192.168.64.2
-        User sakalli
-        IdentityFile ~/.ssh/id_ed25519_vm_access
-        IdentitiesOnly yes
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
-        ForwardAgent yes
-        RemoteForward /home/sakalli/.1password/agent.sock "/Users/samikallinen/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
     '' else '''';
   };
 
