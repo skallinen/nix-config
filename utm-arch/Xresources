@@ -1,0 +1,4 @@
+! xterm is the emergency terminal (utm-arch D12); Ghostty from Nix is the daily one.
+XTerm*faceName: DejaVu Sans Mono
+XTerm*faceSize: 12
+XTerm*selectToClipboard: true

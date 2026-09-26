@@ -1,0 +1,11 @@
+#!/bin/sh
+# ~/.xinitrc for sakalli in the utm-arch VM (D20, D17), installed by Home Manager.
+# Layouts us and fi, both Shift keys switch (as on Margaret). Caps Lock is Super
+# through the Mac's Karabiner rule, so no caps:super here.
+setxkbmap -layout us,fi -option grp:shifts_toggle
+xrdb -merge "$HOME/.Xresources" 2>/dev/null
+# User services (emacs.service) need the display to open frames.
+systemctl --user import-environment DISPLAY XAUTHORITY
+# Session half of the SPICE agent: clipboard and display resize.
+spice-vdagent
+exec i3

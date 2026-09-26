@@ -18,12 +18,10 @@
     tokei
     tree
     wget
-    pngpaste
     dotnet-sdk_8
 
     # CLI Tools for Flutter & Clojure
     flutter
-    cocoapods
     clojure
     clj-kondo
     clojure-lsp
@@ -60,6 +58,11 @@
     #
     # Note this is NOT the "claude" Homebrew cask in darwin-configuration.nix;
     # that is the desktop app (/Applications/Claude.app) and ships no CLI.
+  ] ++ lib.optionals pkgs.stdenv.isDarwin [
+    # Mac-only: neither lists aarch64-linux in meta.platforms, so the utm-arch
+    # VM (homeConfigurations."sakalli@utm") cannot evaluate them.
+    pngpaste
+    cocoapods
   ];
 
   # --- Shared Program Configurations ---

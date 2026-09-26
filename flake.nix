@@ -53,6 +53,14 @@
       "Gmtk-MacBook-Pro"  = mkMac "Gmtk-MacBook-Pro"  ./darwin-configuration.nix;
     };
 
+    # --- utm-arch VM: Arch Linux ARM in UTM, standalone Home Manager ---
+    # ~/common/projects/utm-arch (D13). Switch inside the VM with
+    #   home-manager switch --flake ~/nix-config#sakalli@utm
+    homeConfigurations."sakalli@utm" = home-manager.lib.homeManagerConfiguration {
+      pkgs = import nixpkgs { system = "aarch64-linux"; config.allowUnfree = true; };
+      modules = [ ./shared-home.nix ./utm-home.nix ];
+    };
+
     # --- NixOS VM Configuration ---
     nixosConfigurations."nixos-vm" = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
