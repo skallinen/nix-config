@@ -237,6 +237,14 @@ bindsym $mod+Shift+n exec --no-startup-id house-dnd
 # for the task.
 bindsym $mod+Shift+a exec --no-startup-id agent-open
 bindsym $mod+Shift+t exec --no-startup-id agent-open --task
+
+# The menu (house-menu): actions and apps in one filterable list. Super+Space is
+# focus mode_toggle, so Shift+D, next to Super+D's plain command list.
+bindsym $mod+Shift+d exec --no-startup-id house-menu
+# Screenshot of a region to the clipboard (and ~/Pictures/screenshots); text
+# from a region to the clipboard (OCR).
+bindsym $mod+Shift+s exec --no-startup-id house-shot
+bindsym $mod+Control+s exec --no-startup-id house-ocr
 bar {
 	# The M3800 bar: black, workspaces on the left, status blocks on the right. Ink
 	# instead of pure black, the rust accent instead of its #007fff blue.

@@ -144,6 +144,63 @@ in
       fi
       exec ${ghostty}/bin/ghostty --class=house.agent -e sudo -n -u agent /usr/local/bin/agent-claude "$proj" ''${task:+"$task"}
     '')
+    # Screenshots (Super+Shift+S or the menu): a region, or the whole screen with
+    # --screen, to the clipboard and to ~/Pictures/screenshots.
+    (writeShellScriptBin "house-shot" ''
+      set -eu
+      dir="$HOME/Pictures/screenshots"; mkdir -p "$dir"
+      f="$dir/$(date +%Y-%m-%d-%H%M%S).png"
+      if [ "''${1:-}" = --screen ]; then ${maim}/bin/maim -u "$f"
+      else ${maim}/bin/maim -s -u "$f" || exit 0; fi
+      ${xclip}/bin/xclip -selection clipboard -t image/png < "$f"
+      ${libnotify}/bin/notify-send -u low "Screenshot" "On the clipboard and in ~/Pictures/screenshots"
+    '')
+    # Text from the screen (Super+Ctrl+S or the menu; Omarchy's OCR): select a
+    # region, tesseract reads it (English and Finnish), the text goes to the
+    # clipboard.
+    (writeShellScriptBin "house-ocr" ''
+      set -eu
+      text=$(${maim}/bin/maim -s -u | ${tesseract.override { enableLanguages = [ "eng" "fin" ]; }}/bin/tesseract -l eng+fin stdin stdout 2>/dev/null) || exit 0
+      [ -n "''${text//[[:space:]]/}" ] || { ${libnotify}/bin/notify-send -u low "Text from screen" "No text found"; exit 0; }
+      printf '%s' "$text" | ${xclip}/bin/xclip -selection clipboard
+      ${libnotify}/bin/notify-send -u low "Text from screen" "$(printf '%s' "$text" | head -c 120)"
+    '')
+    # The menu (Super+Shift+D; Omarchy's Super+Space menu, but that key is i3's
+    # focus mode_toggle here): the house actions and every app, filtered as you
+    # type. rofi's combi mode over a script mode ("house") and drun. Each action
+    # runs through i3, so it outlives rofi.
+    (writeShellScriptBin "house-menu-actions" ''
+      actions=(
+        "Agent: open a project|agent-open"
+        "Agent: start with a task|agent-open --task"
+        "Terminal|ghostty"
+        "Emacs|emacsclient -c"
+        "System monitor (btop)|ghostty -e btop"
+        "Screenshot: region|house-shot"
+        "Screenshot: whole screen|house-shot --screen"
+        "Text from screen (OCR)|house-ocr"
+        "Notifications: show the last one|dunstctl history-pop"
+        "Notifications: close all|dunstctl close-all"
+        "Notifications: do not disturb on or off|house-dnd"
+        "Lock the screen|i3lock -c ${palette.bare.linen}"
+        "Reload i3|i3-msg reload"
+        "Restart the SPICE agent (clipboard, resize)|vdagent-restart"
+      )
+      if [ $# -eq 0 ]; then
+        for a in "''${actions[@]}"; do printf '%s\n' "''${a%%|*}"; done
+        exit 0
+      fi
+      for a in "''${actions[@]}"; do
+        if [ "''${a%%|*}" = "$1" ]; then
+          i3-msg -q exec "''${a#*|}" >/dev/null
+          exit 0
+        fi
+      done
+    '')
+    (writeShellScriptBin "house-menu" ''
+      exec ${rofi}/bin/rofi -show combi -modi "combi,house:house-menu-actions,drun" \
+        -combi-modi "house,drun" -display-combi MENU -combi-hide-mode-prefix
+    '')
     (writeShellScriptBin "vdagent-restart" ''
       # ~/.xinitrc imports the X session's DISPLAY into the systemd user manager.
       eval "export $(systemctl --user show-environment | grep '^DISPLAY=')"
