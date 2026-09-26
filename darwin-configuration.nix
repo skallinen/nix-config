@@ -248,8 +248,9 @@
 
       # Cloud & Sync
       "dropbox" "google-drive" "aws-vpn-client"
-      # "utm"                # uninstalled 2026-08-04 — NOTE: its 33 GB NixOS VM
-      #                      #   still sits in ~/Library/Containers/com.utmapp.UTM
+      "utm"                  # re-enabled 2026-09-26 for the utm-arch VM (D8); the old
+                             #   NixOS VM moved 2026-08-04 to Google Drive
+                             #   (My Drive/Documents_Backup/NixOS.utm), not on this Mac
 
       # Developer & Utilities
       # 1password-cli now provided by Nix (pkgs._1password-cli)
