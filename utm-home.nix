@@ -91,4 +91,12 @@
   };
   home.file.".Xresources".source = ./utm-arch/Xresources;
   xdg.configFile."i3/config".source = ./utm-arch/i3-config;
+  xdg.configFile."ghostty/config.ghostty".source = ./utm-arch/ghostty-config;
+  # rofi ignores Xft.dpi unless told (its default -1 means 96 dpi); 1 reads Xft.dpi,
+  # so Super+D follows the 2x of utm-arch/Xresources.
+  xdg.configFile."rofi/config.rasi".text = ''
+    configuration {
+      dpi: 1;
+    }
+  '';
 }

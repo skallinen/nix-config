@@ -2,3 +2,13 @@
 XTerm*faceName: DejaVu Sans Mono
 XTerm*faceSize: 12
 XTerm*selectToClipboard: true
+
+! HiDPI at 2x, the Mac's default "looks like 1280x832". Full screen gives the guest the
+! Air's native 2560x1606 (UTM NativeResolution on), so everything drawn at 96 dpi is
+! half the Mac's size. Xft.dpi 192 doubles every font given in points (i3 and i3bar,
+! xterm, dmenu, Emacs, rofi with dpi 1) without GDK_SCALE, so nothing scales twice.
+! Read at startup: new windows pick it up, open ones keep their old size.
+! (utm-arch wiki/utm-display.md, "Scaling".)
+Xft.dpi: 192
+Xcursor.theme: Adwaita
+Xcursor.size: 48

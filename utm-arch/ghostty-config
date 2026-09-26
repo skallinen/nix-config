@@ -1,0 +1,15 @@
+# Ghostty in the utm-arch VM, installed by Home Manager (utm-home.nix) as
+# ~/.config/ghostty/config.ghostty.
+
+# Size: Ghostty takes its scale from Xft.dpi (192 in utm-arch/Xresources, 2x) and
+# counts a point at 96 dpi on Linux but at 72 on the Mac, so 12 here matches the
+# Mac's alacritty at 16 (shared-home.nix).
+font-size = 12
+
+# Mac habits for the clipboard. The Mac's copy reaches the guest's CLIPBOARD (the
+# SPICE agent), but Ghostty's default Shift+Insert pastes PRIMARY, the mouse
+# selection. Command arrives as Super (utm-arch D1). Super+V is also i3's
+# `split v`, and i3 takes it first, so it reaches Ghostty only once i3 lets go.
+keybind = super+c=copy_to_clipboard
+keybind = super+v=paste_from_clipboard
+keybind = shift+insert=paste_from_clipboard
