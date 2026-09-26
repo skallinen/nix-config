@@ -27,12 +27,26 @@
     rofi                     # Super+D, `rofi -show run` as on Margaret
     nerd-fonts.roboto-mono   # same as the Macs' fonts.packages
     nerd-fonts.meslo-lg      # alacritty's font in shared-home.nix
+    fira-code-symbols        # fira-code-mode in myinit.org (Linux only)
+    xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
   ];
 
   programs.emacs = {
     enable = true;
     package = pkgs.emacs;    # X11 (GTK) build: the guest runs i3 on X11 (D3)
+    # vterm with its compiled module; myinit.org tells straight not to clone it
+    # on Linux (straight-built-in-pseudo-packages).
+    extraPackages = epkgs: [ epkgs.vterm ];
   };
+
+  # The Emacs daemon as the systemd user service emacs.service (D19). Its first
+  # start clones and builds every straight.el package, which takes far longer
+  # than systemd's default 90 s start timeout.
+  services.emacs = {
+    enable = true;
+    client.enable = true;
+  };
+  systemd.user.services.emacs.Service.TimeoutStartSec = "30min";
 
   # Login shell is bash (from pacman). Home Manager owns ~/.profile, ~/.bash_profile
   # and ~/.bashrc so the Nix and session variables reach X and i3.
