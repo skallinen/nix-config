@@ -104,12 +104,13 @@
   xdg.configFile."ghostty/config.ghostty".source = ./utm-arch/ghostty-config;
   xdg.configFile."i3status/config".source = ./utm-arch/i3status-config;
   xdg.configFile."rofi/house.rasi".source = ./utm-arch/rofi-theme.rasi;
-  # rofi ignores Xft.dpi unless told (its default -1 means 96 dpi); 1 reads Xft.dpi,
-  # so Super+D follows the 2x of utm-arch/Xresources. The theme is the house
-  # style (utm-arch/rofi-theme.rasi); the prompt is an uppercase label.
+  # rofi ignores Xft.dpi, and rofi 2.0's dpi 1 (the monitor's size) gave 96 on
+  # 2026-09-26 (screenshot in utm-arch research/theme/), so the 2x of
+  # utm-arch/Xresources is given as a number. The theme is the house style
+  # (utm-arch/rofi-theme.rasi); the prompt is an uppercase label.
   xdg.configFile."rofi/config.rasi".text = ''
     configuration {
-      dpi: 1;
+      dpi: 192;
       display-run: "RUN";
       display-drun: "APPS";
       display-window: "WINDOWS";

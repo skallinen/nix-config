@@ -304,6 +304,9 @@ bar {
 			# point. 3 px borders are the house 1.5px at 2x.
 			default_border normal 3
 			default_floating_border normal 3
+			# Ghostty without its GTK header bar sets _MOTIF_WM_HINTS to "no
+			# decorations", and i3 honours that with no border at all.
+			for_window [all] border normal 3
 			title_align left
 			# Uppercase, letter-spaced, as the house labels (pango 1.50 or later).
 			for_window [all] title_format "<span text_transform='uppercase' letter_spacing='1100'>%title</span>"

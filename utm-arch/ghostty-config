@@ -10,6 +10,15 @@ font-size = 12
 # nerd-fonts.roboto-mono in utm-home.nix.
 font-family = "RobotoMono Nerd Font"
 
+# The house colours (utm-arch wiki/utm-theme.md): ink ground as the i3 bar, linen
+# text, the rust accent for the cursor and the selection. The 16 ANSI colours stay
+# Ghostty's own.
+background = 111111
+foreground = EEE7E1
+cursor-color = a9431e
+selection-background = a9431e
+selection-foreground = ffffff
+
 # GTK's own widgets (the header bar, its buttons) stay at 1x: Xft.dpi only scales
 # their text, and GDK_SCALE=2 would double the terminal text a second time. i3
 # tiles the windows anyway, so no header bar. (Tested 2026-09-26: a row is 42 px,
