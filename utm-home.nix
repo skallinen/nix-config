@@ -29,6 +29,15 @@
     nerd-fonts.meslo-lg      # alacritty's font in shared-home.nix
     fira-code-symbols        # fira-code-mode in myinit.org (Linux only)
     xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
+    # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
+    # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
+    # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so
+    # one frame takes about 17 s and Xorg freezes on a window resize (vd_agent
+    # issue 52; utm-arch wiki/utm-display.md). GTK 3 as in Arch's build.
+    (spice-vdagent.overrideAttrs (old: {
+      patches = (old.patches or [ ]) ++ [ ./utm-arch/spice-vdagent-dotclock-hz.patch ];
+      buildInputs = old.buildInputs ++ [ gtk3 ];
+    }))
   ];
 
   programs.emacs = {

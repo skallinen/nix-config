@@ -1,0 +1,26 @@
+diff --git a/src/vdagent/x11-randr.c b/src/vdagent/x11-randr.c
+index 037aded..274b8aa 100644
+--- a/src/vdagent/x11-randr.c
++++ b/src/vdagent/x11-randr.c
+@@ -267,8 +267,8 @@ static void set_reduced_cvt_mode(XRRModeInfo *mode, int width, int height)
+     /* 4) Minimum number of vertical back porch lines - default 6 */
+ #define CVT_MIN_V_BPORCH 6
+ 
+-    /* Pixel Clock step (kHz) */
+-#define CVT_CLOCK_STEP 250
++    /* Pixel Clock step (Hz) */
++#define CVT_CLOCK_STEP 250000
+ 
+     /* Minimum vertical blanking interval time (µs) - default 460 */
+ #define CVT_RB_MIN_VBLANK 460.0
+@@ -318,8 +318,8 @@ static void set_reduced_cvt_mode(XRRModeInfo *mode, int width, int height)
+     mode->vSyncStart = mode->height + CVT_RB_VFPORCH;
+     mode->vSyncEnd = mode->vSyncStart + VSync;
+ 
+-    /* 15/13. Find pixel clock frequency (kHz for xf86) */
+-    mode->dotClock = mode->hTotal * 1000.0 / HPeriod;
++    /* 15/13. Find pixel clock frequency (Hz, as XRRModeInfo.dotClock expects) */
++    mode->dotClock = mode->hTotal * 1000000.0 / HPeriod;
+     mode->dotClock -= mode->dotClock % CVT_CLOCK_STEP;
+ 
+ }
