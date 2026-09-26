@@ -6,11 +6,12 @@
  * house 1.5px border). utm-arch wiki/utm-theme.md. */
 
 * {
-    linen:  #EEE7E1;
-    white:  #ffffff;
-    ink:    #111111;
-    rust:   #a9431e;
-    dim:    #8c8580;
+    /* from utm-arch/palette.nix, filled in by utm-home.nix */
+    linen:  @linen@;
+    white:  @white@;
+    ink:    @ink@;
+    rust:   @rust@;
+    dim:    @dim@;
 
     background-color: transparent;
     text-color:       @ink;

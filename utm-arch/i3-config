@@ -27,14 +27,15 @@
 set $mod Mod4
 
 # The palette, one token per colour, as the :root block of the house style.
-set $linen  #EEE7E1
-set $white  #ffffff
-set $ink    #111111
-set $rust   #a9431e
-set $graphite #333333
-set $dim    #8c8580
+# The values come from utm-arch/palette.nix (utm-home.nix fills the @tokens@).
+set $linen    @linen@
+set $white    @white@
+set $ink      @ink@
+set $rust     @rust@
+set $graphite @graphite@
+set $dim      @dim@
 # Kept from the M3800 theme: its teal border, now only the split indicator.
-set $teal   #02789C
+set $teal     @teal@
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -337,7 +338,7 @@ bar {
 
 #
 # The linen ground of the house style shows in the gaps (xsetroot from Nix).
-exec_always --no-startup-id xsetroot -solid "#EEE7E1"
+exec_always --no-startup-id xsetroot -solid "@linen@"
 # exec --no-startup-id xrdb ~/.Xresources
 # exec --no-startup-id conky -p 5 --config=/home/sakalli/.config/conky/conky.conf 
 gaps inner 10

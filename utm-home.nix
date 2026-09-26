@@ -6,6 +6,23 @@
 # Switch inside the VM:  home-manager switch --flake ~/nix-config#sakalli@utm
 { config, pkgs, lib, ... }:
 
+let
+  # The house palette (utm-arch/palette.nix): every surface reads its colours,
+  # border width, gaps and fonts from there. `themed` fills a file's @token@
+  # placeholders (@ink@, @border@, @gap_inner@, @font_sans@ ...) from it.
+  palette = import ./utm-arch/palette.nix;
+  tokens = palette.colours // {
+    border = toString palette.border;
+    gap_inner = toString palette.gaps.inner;
+    gap_outer = toString palette.gaps.outer;
+    font_sans = palette.fonts.sans;
+    font_mono = palette.fonts.mono;
+  };
+  themed = file: builtins.replaceStrings
+    (map (n: "@${n}@") (builtins.attrNames tokens))
+    (builtins.attrValues tokens)
+    (builtins.readFile file);
+in
 {
   home.username = "sakalli";
   home.homeDirectory = "/home/sakalli";
@@ -100,10 +117,10 @@
     executable = true;
   };
   home.file.".Xresources".source = ./utm-arch/Xresources;
-  xdg.configFile."i3/config".source = ./utm-arch/i3-config;
-  xdg.configFile."ghostty/config.ghostty".source = ./utm-arch/ghostty-config;
-  xdg.configFile."i3status/config".source = ./utm-arch/i3status-config;
-  xdg.configFile."rofi/house.rasi".source = ./utm-arch/rofi-theme.rasi;
+  xdg.configFile."i3/config".text = themed ./utm-arch/i3-config;
+  xdg.configFile."ghostty/config.ghostty".text = themed ./utm-arch/ghostty-config;
+  xdg.configFile."i3status/config".text = themed ./utm-arch/i3status-config;
+  xdg.configFile."rofi/house.rasi".text = themed ./utm-arch/rofi-theme.rasi;
   # rofi ignores Xft.dpi, and rofi 2.0's dpi 1 (the monitor's size) gave 96 on
   # 2026-09-26 (screenshot in utm-arch research/theme/), so the 2x of
   # utm-arch/Xresources is given as a number. The theme is the house style

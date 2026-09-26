@@ -6,9 +6,9 @@
 
 general {
         colors = true
-        color_good = "#EEE7E1"
-        color_degraded = "#d9825f"
-        color_bad = "#e2572a"
+        color_good = "@linen@"
+        color_degraded = "@rustLight@"
+        color_bad = "@rustBright@"
         interval = 5
 }
 
