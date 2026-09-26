@@ -302,12 +302,12 @@ bar {
 			#set $tag1 "1: www"
 			#set $tag9 "1: irc"
 			# Title bars on, as on the M3800: the coloured focused title is the
-			# point. 3 px borders are the house 1.5px at 2x.
-			default_border normal 3
-			default_floating_border normal 3
+			# point. One border width (palette.nix); i3 doubles it at 2x.
+			default_border normal @border@
+			default_floating_border normal @border@
 			# Ghostty without its GTK header bar sets _MOTIF_WM_HINTS to "no
 			# decorations", and i3 honours that with no border at all.
-			for_window [all] border normal 3
+			for_window [all] border normal @border@
 			title_align left
 			# Uppercase, letter-spaced, as the house labels (pango 1.50 or later).
 			for_window [all] title_format "<span text_transform='uppercase' letter_spacing='1100'>%title</span>"
@@ -341,9 +341,11 @@ bar {
 exec_always --no-startup-id xsetroot -solid "@linen@"
 # exec --no-startup-id xrdb ~/.Xresources
 # exec --no-startup-id conky -p 5 --config=/home/sakalli/.config/conky/conky.conf 
-gaps inner 10
-gaps outer 0
-smart_gaps on
+# Omarchy's gaps (palette.nix): 5 between windows, 10 at the screen edge, and
+# always on, so the linen frames even a single window.
+gaps inner @gap_inner@
+gaps outer @gap_outer@
+smart_gaps off
 
  # netflix
 #  assign [class="Firefox" title="Netflix\\ \\-\\ Mozilla\\ Firefox"] → 3

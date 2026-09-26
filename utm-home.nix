@@ -13,11 +13,15 @@ let
   palette = import ./utm-arch/palette.nix;
   tokens = palette.colours // {
     border = toString palette.border;
+    border_px = toString palette.borderPx;
     gap_inner = toString palette.gaps.inner;
     gap_outer = toString palette.gaps.outer;
     font_sans = palette.fonts.sans;
     font_mono = palette.fonts.mono;
-  };
+  }
+  # @ansi_dark_0@ to @ansi_dark_15@, @ansi_light_0@ to @ansi_light_15@
+  // builtins.listToAttrs (lib.imap0 (i: c: { name = "ansi_dark_${toString i}"; value = c; }) palette.ansi.dark)
+  // builtins.listToAttrs (lib.imap0 (i: c: { name = "ansi_light_${toString i}"; value = c; }) palette.ansi.light);
   themed = file: builtins.replaceStrings
     (map (n: "@${n}@") (builtins.attrNames tokens))
     (builtins.attrValues tokens)
@@ -78,6 +82,61 @@ in
       i3-msg -q exec "$HOME/.nix-profile/bin/spice-vdagent"
     '')
   ];
+
+  # btop in the house colours on the ink terminal: linen text, rust for "here" and
+  # for the hot end of every graph, graphite box lines.
+  programs.btop = {
+    enable = true;
+    settings = {
+      color_theme = "house";
+      theme_background = false;   # the terminal's own ink ground
+      rounded_corners = false;    # square, as every other surface
+    };
+    themes.house = with palette.colours; ''
+      theme[main_bg]="${ink}"
+      theme[main_fg]="${linen}"
+      theme[title]="${linen}"
+      theme[hi_fg]="${rustLight}"
+      theme[selected_bg]="${rust}"
+      theme[selected_fg]="${white}"
+      theme[inactive_fg]="${muted}"
+      theme[graph_text]="${dim}"
+      theme[meter_bg]="${graphite}"
+      theme[proc_misc]="${dim}"
+      theme[cpu_box]="${graphite}"
+      theme[mem_box]="${graphite}"
+      theme[net_box]="${graphite}"
+      theme[proc_box]="${graphite}"
+      theme[div_line]="${graphite}"
+      theme[temp_start]="${dim}"
+      theme[temp_mid]="${linen}"
+      theme[temp_end]="${rust}"
+      theme[cpu_start]="${dim}"
+      theme[cpu_mid]="${linen}"
+      theme[cpu_end]="${rustLight}"
+      theme[free_start]="${muted}"
+      theme[free_mid]="${dim}"
+      theme[free_end]="${linen}"
+      theme[cached_start]="${muted}"
+      theme[cached_mid]="${dim}"
+      theme[cached_end]="${linen}"
+      theme[available_start]="${muted}"
+      theme[available_mid]="${dim}"
+      theme[available_end]="${linen}"
+      theme[used_start]="${dim}"
+      theme[used_mid]="${rustLight}"
+      theme[used_end]="${rust}"
+      theme[download_start]="${muted}"
+      theme[download_mid]="${dim}"
+      theme[download_end]="${linen}"
+      theme[upload_start]="${muted}"
+      theme[upload_mid]="${dim}"
+      theme[upload_end]="${rustLight}"
+      theme[process_start]="${dim}"
+      theme[process_mid]="${linen}"
+      theme[process_end]="${rustLight}"
+    '';
+  };
 
   programs.emacs = {
     enable = true;

@@ -11,14 +11,37 @@ font-size = 12
 font-family = "RobotoMono Nerd Font"
 
 # The house colours (utm-arch wiki/utm-theme.md): ink ground as the i3 bar, linen
-# text, the rust accent for the cursor and the selection. The 16 ANSI colours stay
-# Ghostty's own.
+# text, the rust accent for the cursor and the selection. The 16 ANSI colours are
+# palette.nix's `ansi.dark`: muted, with rust for red, after Omarchy's flexoki.
 # Values from utm-arch/palette.nix (utm-home.nix fills the @tokens@).
 background = @ink@
 foreground = @linen@
 cursor-color = @rust@
 selection-background = @rust@
 selection-foreground = @white@
+palette = 0=@ansi_dark_0@
+palette = 1=@ansi_dark_1@
+palette = 2=@ansi_dark_2@
+palette = 3=@ansi_dark_3@
+palette = 4=@ansi_dark_4@
+palette = 5=@ansi_dark_5@
+palette = 6=@ansi_dark_6@
+palette = 7=@ansi_dark_7@
+palette = 8=@ansi_dark_8@
+palette = 9=@ansi_dark_9@
+palette = 10=@ansi_dark_10@
+palette = 11=@ansi_dark_11@
+palette = 12=@ansi_dark_12@
+palette = 13=@ansi_dark_13@
+palette = 14=@ansi_dark_14@
+palette = 15=@ansi_dark_15@
+
+# Flat and square like every other surface: no GTK window frame (GTK drew a 5 px
+# grey edge inside i3's border), and a little room between the border and the text.
+window-decoration = none
+window-padding-x = 12
+window-padding-y = 8
+window-padding-balance = true
 
 # GTK's own widgets (the header bar, its buttons) stay at 1x: Xft.dpi only scales
 # their text, and GDK_SCALE=2 would double the terminal text a second time. i3

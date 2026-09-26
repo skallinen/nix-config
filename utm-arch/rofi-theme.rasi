@@ -2,8 +2,8 @@
  * ~/.config/rofi/house.rasi. The house style of the assistant repo (I23): a white
  * card with a black border, a linen input row, one rust accent for the selected
  * row, HN for the labels and RobotoMono for the commands. Fonts scale by rofi's dpi
- * (192, in config.rasi); px sizes do not, so they are given at 2x (3px is the
- * house 1.5px border). utm-arch wiki/utm-theme.md. */
+ * (192, in config.rasi); px sizes do not, so they are given at 2x. The border is
+ * palette.nix's one width (borderPx, real pixels). utm-arch wiki/utm-theme.md. */
 
 * {
     /* from utm-arch/palette.nix, filled in by utm-home.nix */
@@ -24,7 +24,7 @@ window {
     anchor:           center;
     y-offset:         -160px;
     background-color: @white;
-    border:           3px;
+    border:           @border_px@px;
     border-color:     @ink;
     padding:          0;
 }
@@ -37,7 +37,7 @@ mainbox {
 inputbar {
     children:         [ prompt, entry ];
     background-color: @linen;
-    border:           0 0 3px 0;
+    border:           0 0 @border_px@px 0;
     border-color:     @ink;
     padding:          20px 24px;
     spacing:          24px;
@@ -90,7 +90,7 @@ element normal.urgent, element alternate.urgent {
 
 message {
     background-color: @linen;
-    border:           3px 0 0 0;
+    border:           @border_px@px 0 0 0;
     border-color:     @ink;
     padding:          16px 24px;
 }

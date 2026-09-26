@@ -32,18 +32,22 @@ rec {
     ];
     # On the ink shell terminal.
     dark = [
-      "#111111" "#d9825f" "#99ab4a" "#d8ae3a" "#5e97c9" "#d576a6" "#4fb5ab" "#cfc8c2"
+      "#333333" "#d9825f" "#99ab4a" "#d8ae3a" "#5e97c9" "#d576a6" "#4fb5ab" "#cfc8c2"
       "#6b645e" "#e2572a" "#b0c25c" "#e6c25a" "#7fb0dc" "#e391ba" "#6fcbc1" "#ffffff"
     ];
   };
 
-  # One border width everywhere: the house 1.5px at the VM's fixed 2x (Xft.dpi 192).
-  border = 3;
-  # Omarchy's gaps (5 between windows, 10 at the screen edge), at 2x. i3 adds the
-  # outer gap to the inner one at the edge: 10 + 10 = 20.
+  # One border width everywhere, Omarchy's 2 (the nearest whole number to the house
+  # 1.5px). i3 counts its border and gap sizes in logical pixels and doubles them
+  # at the VM's 2x (Xft.dpi 192): `border` is for i3. rofi and dunst count real
+  # pixels: `borderPx` is the same line for them.
+  border = 2;
+  borderPx = 4;
+  # Omarchy's gaps: 5 between windows, 10 at the screen edge (i3 adds the outer gap
+  # to the inner one there: 5 + 5). Logical pixels, as border.
   gaps = {
-    inner = 10;
-    outer = 10;
+    inner = 5;
+    outer = 5;
   };
 
   fonts = {
