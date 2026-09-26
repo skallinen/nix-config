@@ -38,6 +38,18 @@
       patches = (old.patches or [ ]) ++ [ ./utm-arch/spice-vdagent-dotclock-hz.patch ];
       buildInputs = old.buildInputs ++ [ gtk3 ];
     }))
+    # Restart the session agent by hand (after a switch, say) from anywhere, ssh
+    # included. It must run in the tty1 login session: spice-vdagentd talks only to
+    # the agent of the active logind session, and with none there it closes the
+    # virtio port, so UTM sees no agent and sends no size or clipboard. Started from
+    # ssh it lands in the ssh session (that happened 2026-09-26), so go through i3.
+    (writeShellScriptBin "vdagent-restart" ''
+      # ~/.xinitrc imports the X session's DISPLAY into the systemd user manager.
+      eval "export $(systemctl --user show-environment | grep '^DISPLAY=')"
+      pkill -x spice-vdagent
+      sleep 1
+      i3-msg -q exec "$HOME/.nix-profile/bin/spice-vdagent"
+    '')
   ];
 
   programs.emacs = {
