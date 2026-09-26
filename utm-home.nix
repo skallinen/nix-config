@@ -296,7 +296,7 @@ in
         progress_bar_corner_radius = 0;
         progress_bar_frame_width = 0;
         highlight = rust;
-        font = "${palette.fonts.sans} Medium 9";
+        font = "${palette.fonts.sans} Medium 10";
         markup = "full";
         # The summary as a house label (bold, uppercase, letter-spaced), then the body.
         format = "<span weight='bold' size='small' text_transform='uppercase' letter_spacing='1100'>%s</span>\\n%b";
