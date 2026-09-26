@@ -20,6 +20,19 @@ case $event in
   Notification) title="Claude needs you"; body="$proj: $(field message)" ;;
   *)            exit 0 ;;
 esac
+# Hooks run without a controlling terminal, so /dev/tty fails (seen 2026-09-27).
+# Walk up from the hook to Claude Code itself and use the terminal its output
+# goes to (a pty that sudo made for agent).
+term() {
+  local p=$PPID t i
+  for i in 1 2 3 4 5 6; do
+    t=$(readlink "/proc/$p/fd/1" 2>/dev/null) || return 0
+    case $t in /dev/pts/*) printf '%s' "$t"; return 0 ;; esac
+    p=$(cut -d' ' -f4 "/proc/$p/stat" 2>/dev/null) || return 0
+    [ "$p" -gt 1 ] 2>/dev/null || return 0
+  done
+}
+out=$(term)
 # OSC 777 splits on ';', so none may be left in the text.
-{ printf '\033]777;notify;%s;%s\007' "${title//;/,}" "${body//;/,}" > /dev/tty; } 2>/dev/null || true
+{ printf '\033]777;notify;%s;%s\007' "${title//;/,}" "${body//;/,}" > "${out:-/dev/tty}"; } 2>/dev/null || true
 exit 0
