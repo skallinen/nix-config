@@ -232,12 +232,13 @@ exec --no-startup-id systemctl --user start dunst
 bindsym $mod+n exec --no-startup-id dunstctl close
 bindsym $mod+Shift+n exec --no-startup-id house-dnd
 bar {
-	# The M3800 bar: black, workspaces on the left, i3status on the right. Ink
+	# The M3800 bar: black, workspaces on the left, status blocks on the right. Ink
 	# instead of pure black, the rust accent instead of its #007fff blue.
-	font pango:HN Bold 8.5
+	# HN for the labels, the Nerd Font for the icons in the status blocks.
+	font pango:@font_sans@, @font_mono@ Bold 8.5
 	position bottom
-	status_command i3status
-	separator_symbol "   "
+	# i3blocks (utm-home.nix): blocks show only when they have something to say.
+	status_command i3blocks
 	padding 3px 6px
 	workspace_min_width 44
 	tray_output none

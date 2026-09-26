@@ -102,6 +102,7 @@ in
     xsetroot                 # i3 paints the linen desktop with it
     jq                       # utm-arch build/agent-desktop.sh edits agent's settings.json with it
     libnotify                # notify-send, for scripts and the agent's notifications
+    i3blocks                 # the bar's status line (i3-config, bar block)
     # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
     # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
     # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so
@@ -255,11 +256,121 @@ in
     };
   };
 
+  # The bar (Omarchy's "hide what has nothing to say"): i3blocks, one script per
+  # block. Only the clock is always there; every other block prints nothing, and
+  # so takes no room, until it has something to say. Icons from the Nerd Font,
+  # labels uppercase and letter-spaced, linen on the ink bar, the rust tint (the
+  # plain rust is too dark on ink) for anything that wants attention.
+  xdg.configFile."i3blocks/config".text =
+    let
+      c = palette.colours;
+      label = t: "<span letter_spacing='1100'>${t}</span>";
+      block = name: text: pkgs.writeShellScript "bar-${name}" text;
+    in ''
+      separator=false
+      separator_block_width=36
+      markup=pango
+
+      # agent's Claude plan: 5-hour and 7-day use, from the file agent's status line
+      # writes (build/agent-desktop.sh). Hidden when there is no file or both
+      # windows have reset. The file is agent's, so only digits are taken from it.
+      [agent]
+      interval=30
+      command=${block "agent" ''
+        f=/var/lib/agent-status/usage
+        [ -r "$f" ] || exit 0
+        read -r line < "$f" || true
+        five= five_reset= seven= seven_reset=
+        for kv in $line; do
+          v=''${kv#*=}
+          [[ $v =~ ^[0-9]+$ ]] || continue
+          case $kv in
+            five=*) five=$v ;; five_reset=*) five_reset=$v ;;
+            seven=*) seven=$v ;; seven_reset=*) seven_reset=$v ;;
+          esac
+        done
+        now=$(date +%s); out=; hot=
+        if [ -n "$five" ] && [ "''${five_reset:-0}" -gt "$now" ]; then
+          out="$out ${label "5H"} $five%"; [ "$five" -ge 80 ] && hot=1
+        fi
+        if [ -n "$seven" ] && [ "''${seven_reset:-0}" -gt "$now" ]; then
+          out="$out  ${label "7D"} $seven%"; [ "$seven" -ge 80 ] && hot=1
+        fi
+        [ -n "$out" ] || exit 0
+        echo "󰚩$out"; echo "󰚩"
+        [ -n "$hot" ] && echo "${c.rustLight}"
+        exit 0
+      ''}
+
+      # Do not disturb (Super+Shift+N, house-dnd sends signal 10), with how many
+      # notifications wait.
+      [dnd]
+      interval=once
+      signal=10
+      command=${block "dnd" ''
+        [ "$(${pkgs.dunst}/bin/dunstctl is-paused)" = true ] || exit 0
+        n=$(${pkgs.dunst}/bin/dunstctl count waiting)
+        echo "󰂛 ${label "DND"}''${n:+ $n}"
+      ''}
+
+      # The keyboard layout, only when it is not US (both Shift keys switch, D17).
+      [layout]
+      interval=2
+      command=${block "layout" ''
+        l=$(${pkgs.xkblayout-state}/bin/xkblayout-state print %s)
+        [ "$l" = us ] || echo "󰌌 ${label "\${l^^}"}"
+      ''}
+
+      [offline]
+      interval=10
+      command=${block "offline" ''
+        [ -n "$(ip route show default 2>/dev/null)" ] && exit 0
+        echo "󰌙 ${label "OFFLINE"}"; echo; echo "${c.rustLight}"
+      ''}
+
+      # Disk, memory and load only when they run short.
+      [disk]
+      interval=60
+      command=${block "disk" ''
+        read -r pct avail < <(df --output=pcent,avail -h / | tail -n 1)
+        [ "''${pct%\%}" -ge 90 ] || exit 0
+        echo "󰋊 ${label "DISK"} $avail"; echo; echo "${c.rustLight}"
+      ''}
+
+      [memory]
+      interval=10
+      command=${block "memory" ''
+        total=$(awk '/^MemTotal/ {print $2}' /proc/meminfo)
+        avail=$(awk '/^MemAvailable/ {print $2}' /proc/meminfo)
+        used=$(( (total - avail) * 100 / total ))
+        [ "$used" -ge 85 ] || exit 0
+        echo "󰍛 ${label "MEM"} $used%"; echo; echo "${c.rustLight}"
+      ''}
+
+      [load]
+      interval=10
+      command=${block "load" ''
+        read -r load _ < /proc/loadavg
+        [ "''${load%.*}" -ge "$(nproc)" ] || exit 0
+        echo "󰓅 ${label "LOAD"} $load"
+      ''}
+
+      [clock]
+      interval=5
+      command=${block "clock" ''
+        echo "${label "$(date '+%a %d %b' | tr a-z A-Z)"}  $(date +%H:%M)"
+      ''}
+    '';
+
   # agent's half of the desktop, staged here for utm-arch build/agent-desktop.sh,
   # which copies it (as root) to /usr/local/lib/house-agent and agent's home:
   # agent cannot read Nix files in sakalli's home, and the palette lives here.
   home.file.".local/share/house-agent/claude-notify" = {
     source = ./utm-arch/agent/claude-notify;
+    executable = true;
+  };
+  home.file.".local/share/house-agent/claude-statusline" = {
+    source = ./utm-arch/agent/claude-statusline;
     executable = true;
   };
 
@@ -316,7 +427,6 @@ in
   home.file.".Xresources".source = ./utm-arch/Xresources;
   xdg.configFile."i3/config".text = themed ./utm-arch/i3-config;
   xdg.configFile."ghostty/config.ghostty".text = themed ./utm-arch/ghostty-config;
-  xdg.configFile."i3status/config".text = themed ./utm-arch/i3status-config;
   xdg.configFile."rofi/house.rasi".text = themed ./utm-arch/rofi-theme.rasi;
   # rofi ignores Xft.dpi, and rofi 2.0's dpi 1 (the monitor's size) gave 96 on
   # 2026-09-26 (screenshot in utm-arch research/theme/), so the 2x of

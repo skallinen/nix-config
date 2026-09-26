@@ -1,0 +1,37 @@
+#!/bin/bash
+# Claude Code status line for agent, installed by utm-arch build/agent-desktop.sh
+# as /usr/local/lib/house-agent/claude-statusline. House style: uppercase labels,
+# quiet grey (ANSI 8) for the labels, rust (ANSI 1) for a limit at 80% or more.
+#
+# It also hands the plan's usage (the 5-hour and 7-day windows, which Claude Code
+# puts in the status line input: code.claude.com/docs/en/statusline, rate_limits)
+# to sakalli's bar through /var/lib/agent-status/usage, a world-readable file
+# outside both homes (D16). No network, so nothing for the D21 firewall.
+# No jq for agent: the fields are cut out with grep and sed.
+in=$(cat | tr -d '\n')
+str() { printf '%s' "$in" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -n 1 | sed 's/.*:[[:space:]]*"//; s/"$//'; }
+win() { printf '%s' "$in" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*{[^}]*}" | head -n 1; }
+num() { printf '%s' "$1" | grep -o "\"$2\"[[:space:]]*:[[:space:]]*[0-9.]*" | grep -o '[0-9.]*$' | cut -d. -f1; }
+
+model=$(str display_name)
+dir=$(str current_dir); [ -n "$dir" ] || dir=$(str cwd)
+five=$(win five_hour); seven=$(win seven_day)
+p5=$(num "$five" used_percentage); r5=$(num "$five" resets_at)
+p7=$(num "$seven" used_percentage); r7=$(num "$seven" resets_at)
+
+out=/var/lib/agent-status
+if [ -d "$out" ] && [ -w "$out" ] && { [ -n "$p5" ] || [ -n "$p7" ]; }; then
+  printf 'five=%s five_reset=%s seven=%s seven_reset=%s at=%s\n' \
+    "${p5:-}" "${r5:-}" "${p7:-}" "${r7:-}" "$(date +%s)" > "$out/usage.tmp" &&
+    chmod 644 "$out/usage.tmp" && mv "$out/usage.tmp" "$out/usage"
+fi
+
+q=$'\033[90m'; r=$'\033[31m'; n=$'\033[0m'
+pct() { # label value
+  [ -n "$2" ] || return 0
+  if [ "$2" -ge 80 ]; then printf '  %s%s%s %s%s%%%s' "$q" "$1" "$n" "$r" "$2" "$n"
+  else printf '  %s%s%s %s%%' "$q" "$1" "$n" "$2"; fi
+}
+printf '%s%s%s  %s' "$q" "${model^^}" "$n" "${dir##*/}"
+pct 5H "$p5"
+pct 7D "$p7"
