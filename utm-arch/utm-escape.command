@@ -75,6 +75,11 @@ case "$head" in
   "CANCEL:")
     echo "No Cancel button found. Answer the dialog by hand; UTM will not capture while it is open."
     exit 0 ;;
+  CANCEL:*) ;;
+  *)
+    echo "Could not read UTM's windows through System Events (Terminal needs Accessibility)."
+    echo "The pointer should still be free: click UTM's window and press Escape on any sheet."
+    exit 1 ;;
 esac
 
 target=${head#CANCEL:}
@@ -88,5 +93,9 @@ if [ "$answer" = c ]; then
     set t to system attribute "UTM_ESCAPE_TARGET"
     tell application "System Events" to tell process "UTM"
       click button "Cancel" of sheet 1 of window t
-    end tell' && echo "Clicked Cancel."
+    end tell' && {
+    /usr/bin/open -a UTM
+    echo "Clicked Cancel and brought UTM forward. If the pointer is still stuck, press"
+    echo "Cmd+Option: with the sheet gone, UTM hears its release chord again."
+  }
 fi
