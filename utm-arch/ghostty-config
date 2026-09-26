@@ -6,6 +6,12 @@
 # Mac's alacritty at 16 (shared-home.nix).
 font-size = 12
 
+# GTK's own widgets (the header bar, its buttons) stay at 1x: Xft.dpi only scales
+# their text, and GDK_SCALE=2 would double the terminal text a second time. i3
+# tiles the windows anyway, so no header bar. (Tested 2026-09-26: a row is 42 px,
+# twice the 96 dpi size.)
+gtk-titlebar = false
+
 # Mac habits for the clipboard. The Mac's copy reaches the guest's CLIPBOARD (the
 # SPICE agent), but Ghostty's default Shift+Insert pastes PRIMARY, the mouse
 # selection. Command arrives as Super (utm-arch D1). Super+V is also i3's
