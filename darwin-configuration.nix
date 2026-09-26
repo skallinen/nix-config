@@ -338,6 +338,13 @@
 
     # Config Files
     home.file.".config/aerospace/aerospace.toml".source = ./aerospace/aerospace.toml;
+    # Control+Shift+Escape: the way out when UTM holds capture behind a sheet (utm-arch
+    # wiki/utm-input-and-keyboard.md, "Captured behind a sheet"). Karabiner sees keys
+    # below every app, so the chord works while UTM swallows the keyboard.
+    home.file.".local/bin/utm-escape.command" = {
+      source = ./utm-arch/utm-escape.command;
+      executable = true;
+    };
     home.file.".config/karabiner/karabiner.json".text = builtins.toJSON {
       profiles = [
         {
@@ -345,6 +352,27 @@
           selected = true;
           complex_modifications = {
             rules = [
+              {
+                # Finder takes focus, so UTM's VM window resigns main and releases the
+                # pointer and keyboard; the Terminal script then lists any UTM sheet and
+                # offers Cancel. Not Cmd+Option or Ctrl+Option: UTM toggles capture on
+                # any held set that contains its capture chord.
+                description = "Control+Shift+Escape -> escape from UTM capture";
+                manipulators = [
+                  {
+                    type = "basic";
+                    from = {
+                      key_code = "escape";
+                      modifiers = { mandatory = ["control" "shift"]; optional = ["caps_lock"]; };
+                    };
+                    to = [
+                      {
+                        shell_command = "/usr/bin/pgrep -xq UTM && { /usr/bin/open -a Finder; /usr/bin/open -a Terminal \"$HOME/.local/bin/utm-escape.command\"; }";
+                      }
+                    ];
+                  }
+                ];
+              }
               {
                 description = "Cmd+Space -> Toggle Input Source (US <-> Swedish), not in UTM";
                 manipulators = [
