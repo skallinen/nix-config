@@ -19,6 +19,15 @@
 
   # Fonts from home.packages are only found by fontconfig with this on.
   fonts.fontconfig.enable = true;
+  # The Mac's pair (myinit.org): RobotoMono Nerd Font for code, Helvetica for
+  # prose. Helvetica here is HN, the house Helvetica Neue from the assistant repo,
+  # which build/hn-fonts.sh copies in (not from Nix: licensed to Sami, and this
+  # repo is public). Until it runs, sans-serif falls back to fontconfig's default.
+  fonts.fontconfig.defaultFonts = {
+    monospace = [ "RobotoMono Nerd Font" ];
+    sansSerif = [ "HN" ];
+  };
+  xdg.configFile."fontconfig/conf.d/60-hn.conf".source = ./utm-arch/fontconfig-hn.conf;
 
   programs.home-manager.enable = true;
 
@@ -29,6 +38,7 @@
     nerd-fonts.meslo-lg      # alacritty's font in shared-home.nix
     fira-code-symbols        # fira-code-mode in myinit.org (Linux only)
     xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
+    xsetroot                 # i3 paints the linen desktop with it
     # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
     # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
     # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so
@@ -92,11 +102,18 @@
   home.file.".Xresources".source = ./utm-arch/Xresources;
   xdg.configFile."i3/config".source = ./utm-arch/i3-config;
   xdg.configFile."ghostty/config.ghostty".source = ./utm-arch/ghostty-config;
+  xdg.configFile."i3status/config".source = ./utm-arch/i3status-config;
+  xdg.configFile."rofi/house.rasi".source = ./utm-arch/rofi-theme.rasi;
   # rofi ignores Xft.dpi unless told (its default -1 means 96 dpi); 1 reads Xft.dpi,
-  # so Super+D follows the 2x of utm-arch/Xresources.
+  # so Super+D follows the 2x of utm-arch/Xresources. The theme is the house
+  # style (utm-arch/rofi-theme.rasi); the prompt is an uppercase label.
   xdg.configFile."rofi/config.rasi".text = ''
     configuration {
       dpi: 1;
+      display-run: "RUN";
+      display-drun: "APPS";
+      display-window: "WINDOWS";
     }
+    @theme "house"
   '';
 }

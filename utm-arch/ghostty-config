@@ -6,6 +6,10 @@
 # Mac's alacritty at 16 (shared-home.nix).
 font-size = 12
 
+# The Mac Emacs's face (myinit.org): Roboto Mono with the Nerd Font symbols, from
+# nerd-fonts.roboto-mono in utm-home.nix.
+font-family = "RobotoMono Nerd Font"
+
 # GTK's own widgets (the header bar, its buttons) stay at 1x: Xft.dpi only scales
 # their text, and GDK_SCALE=2 would double the terminal text a second time. i3
 # tiles the windows anyway, so no header bar. (Tested 2026-09-26: a row is 42 px,

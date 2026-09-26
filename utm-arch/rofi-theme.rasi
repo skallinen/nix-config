@@ -1,0 +1,94 @@
+/* rofi in the utm-arch VM, installed by Home Manager (utm-home.nix) as
+ * ~/.config/rofi/house.rasi. The house style of the assistant repo (I23): a white
+ * card with a black border on the ink bar's desktop, one rust accent for the
+ * selected row, HN for the words. Sizes are at 1x; rofi scales them by Xft.dpi.
+ * utm-arch wiki/utm-theme.md. */
+
+* {
+    linen:  #EEE7E1;
+    white:  #ffffff;
+    ink:    #111111;
+    rust:   #a9431e;
+    dim:    #8c8580;
+
+    background-color: transparent;
+    text-color:       @ink;
+    font:             "HN Medium 11";
+}
+
+window {
+    width:            560px;
+    location:         center;
+    anchor:           center;
+    y-offset:         -80px;
+    background-color: @white;
+    border:           2px;
+    border-color:     @ink;
+    padding:          0;
+}
+
+mainbox {
+    children: [ inputbar, listview ];
+    spacing:  0;
+}
+
+inputbar {
+    children:         [ prompt, entry ];
+    background-color: @linen;
+    border:           0 0 2px 0;
+    border-color:     @ink;
+    padding:          10px 12px;
+    spacing:          12px;
+}
+
+prompt {
+    background-color: @ink;
+    text-color:       @linen;
+    font:             "HN Bold 8";
+    padding:          3px 7px;
+    vertical-align:   0.5;
+}
+
+entry {
+    font:              "RobotoMono Nerd Font 11";
+    placeholder:       "";
+    cursor:            text;
+    vertical-align:    0.5;
+}
+
+listview {
+    lines:     8;
+    columns:   1;
+    fixed-height: false;
+    scrollbar: false;
+    padding:   6px 0;
+    spacing:   0;
+}
+
+element {
+    padding: 6px 14px;
+}
+
+element-text {
+    font:           "RobotoMono Nerd Font 10.5";
+    vertical-align: 0.5;
+}
+
+element selected.normal, element selected.active {
+    background-color: @rust;
+}
+
+element-text selected {
+    text-color: @white;
+}
+
+element normal.urgent, element alternate.urgent {
+    text-color: @rust;
+}
+
+message {
+    background-color: @linen;
+    border:           2px 0 0 0;
+    border-color:     @ink;
+    padding:          8px 12px;
+}
