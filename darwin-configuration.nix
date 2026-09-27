@@ -15,6 +15,11 @@
   # UTM releases input capture with Cmd+Option instead of Control+Option, which is
   # C-M- in the VM's Emacs. `defaults` reaches UTM's sandbox container plist.
   system.defaults.CustomUserPreferences."com.utmapp.UTM".AlternativeCaptureKey = true;
+  # Natural scrolling in the utm-arch VM. UTM forwards the Mac's scroll delta with its
+  # sign flipped from what the guest expects; "Invert scrolling" flips it back. Set on
+  # the Mac rather than in the guest, where it would need a root xorg.conf.d file (not
+  # Home Manager) and would miss the SPICE tablet each time spice-vdagent recreates it.
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".InvertScroll = true;
 
   # Spotlight & Input Source Shortcuts (Cmd+Space / Cmd+D)
   # Note: postUserActivation removed in 25.11; all activation now runs as root
