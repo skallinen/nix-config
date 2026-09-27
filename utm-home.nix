@@ -562,8 +562,22 @@ in
   # :443 gets through (utm-arch wiki/macbridge.md, 2026-09-27). The host key is pinned
   # here under the alias github.com: GitHub's published ED25519 key, fingerprint
   # SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+  # Every ssh from the VM that uses a 1Password key (through the macbridge agent)
+  # asks 1Password for approval on the Mac, and its prompt pulls macOS out of the
+  # VM's space. One multiplexed connection per host means one approval, then none
+  # until it has been idle for ControlPersist (seen 2026-09-27: a watcher polling the
+  # Mac every minute kept switching spaces).
   programs.ssh.extraConfig = ''
+    Host mac 192.168.64.1
+      HostName 192.168.64.1
+      User samikallinen
+      ControlMaster auto
+      ControlPath ~/.ssh/cm-%C
+      ControlPersist 4h
     Host github.com
+      ControlMaster auto
+      ControlPath ~/.ssh/cm-%C
+      ControlPersist 30m
       HostName ssh.github.com
       Port 443
       HostKeyAlias github.com
