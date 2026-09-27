@@ -16,7 +16,10 @@ Everything is in `nix-config` (public on GitHub: no secrets, no licensed fonts).
 
 | What | File |
 |---|---|
-| Colours, border width, gaps, fonts, ANSI colours, tints | `utm-arch/palette.nix` (the only place colours are written) |
+| Colours, ANSI colours, tints, per palette | `utm-arch/palettes/<name>.nix` (the only place colours are written): `house` (the default), `flexoki`, `modus`, `dawn`, `flexoki-dark`, all with the same tokens |
+| Which palette is the default; border width, gaps, fonts | `utm-arch/palette.nix` |
+| Switching palettes: the `house.palette` option, one Home Manager specialisation per palette, the `house-theme` script | `utm-arch/theme.nix` |
+| Contrast of every palette (WCAG 2 and APCA), and fitting a colour to a ratio | `bb utm-arch/palettes/contrast.clj` |
 | i3: keys, borders, gaps, bar block, window rules | `utm-arch/i3-config` (`@token@` placeholders filled from the palette) |
 | rofi theme | `utm-arch/rofi-theme.rasi`; its settings in `utm-home.nix` (`rofi/config.rasi`) |
 | Ghostty | `utm-arch/ghostty-config` |
@@ -25,7 +28,9 @@ Everything is in `nix-config` (public on GitHub: no secrets, no licensed fonts).
 | agent's side: notification hook, status line, launcher, this skill | `utm-arch/agent/`; installed as root by `build/agent-desktop.sh` in the `utm-arch` repo |
 
 `utm-home.nix` fills `@token@` in the files above with `themed`; a new colour goes into
-`palette.nix` first, then is used by name. Never write a hex value anywhere else.
+every file in `palettes/` first (same token in each), then is used by name. Never write a
+hex value anywhere else. A new palette is a new file there plus one line in
+`palette.nix`; run `contrast.clj` and keep every pair passing.
 
 ## The house style (invariant I23 of Sami's assistant repo)
 
@@ -35,6 +40,8 @@ everywhere (`border` for i3, which doubles it at 2x; `borderPx` for rofi and dun
 Square corners, no shadows, no blur, no gradients, no animation. HN (Helvetica Neue)
 for labels, uppercase and letter-spaced; RobotoMono Nerd Font for anything mono and for
 icons. The bar hides every block that has nothing to say. No em dashes in any text.
+The other palettes keep this language (one accent, ink, paper) with other colours; the
+token names are roles, so in `flexoki-dark` `white` (the card) is dark and `ink` is light.
 
 ## How Sami applies a change
 
@@ -46,14 +53,27 @@ systemctl --user restart dunst             # notifications
 sudo bash ~/mac/common/projects/utm-arch/build/agent-desktop.sh   # agent's side
 ```
 
+Colours: `house-theme list`, `house-theme NAME`, `house-theme house` to go back (also
+in the menu, "Colours: ..."). A plain `home-manager switch` always lands on the default
+(`house`); run `house-theme NAME` again after it. i3, the bar, the desktop, dunst, Ghostty
+and Claude Code follow at once; rofi and btop on their next start; agent's Claude Code
+theme only after `agent-desktop.sh` runs again.
+
 ## Traps already found
 
 - i3 counts border and gap sizes in logical pixels and doubles them (Xft.dpi 192);
   rofi and dunst do not.
 - Ghostty is single instance: a new window of a running Ghostty keeps the old config.
   New colours show after all Ghostty windows are closed, or in a window with its own
-  `--class` (the agent window uses `house.agent`).
+  `--class` (the agent window uses `house.agent`). `house-theme` sends SIGUSR2, which
+  reloads the config of the running Ghostty (1.2 release notes; not yet seen live here).
 - dunst without a compositor draws gaps between cards black: keep `gap_size = 0`.
+- `i3-msg reload` does not run `exec_always` (so `house-theme` sets the desktop colour
+  itself) and need not restart i3blocks (it did not on 2026-09-27, with the bar config
+  unchanged): a warning colour baked into a bar block may keep the old palette until the
+  next i3 restart or login.
+- A specialisation's activation becomes the newest Home Manager generation, and the
+  next plain `home-manager switch` goes back to the default palette.
 - Claude Code hooks have no controlling terminal: `/dev/tty` fails, write to the
   pty of the Claude Code process (see `claude-notify`).
 - Never restart Xorg, never stop or suspend the VM, never quit UTM. Restart the SPICE

@@ -49,7 +49,7 @@ let
 
     case "''${1:-}" in
       ""|status)
-        echo "$(current)  (default: $default; others: $names)"
+        echo "$(current)  (default: $default; palettes: $names)"
         exit 0 ;;
       list)
         for n in $names; do
