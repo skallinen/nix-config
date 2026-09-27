@@ -104,6 +104,8 @@ in
     libnotify                # notify-send, for scripts and the agent's notifications
     i3blocks                 # the bar's status line (i3-config, bar block)
     google-chrome            # the browser; nixpkgs builds it for aarch64-linux (Sami: Nix before pacman or AUR)
+    xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
+    alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
     # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
     # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
     # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so
