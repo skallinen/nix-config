@@ -7,10 +7,11 @@
 { config, pkgs, lib, ... }:
 
 let
-  # The house palette (utm-arch/palette.nix): every surface reads its colours,
+  # The palette (utm-arch/palette.nix, chosen by utm-arch/theme.nix: the default
+  # here, another one in each specialisation): every surface reads its colours,
   # border width, gaps and fonts from there. `themed` fills a file's @token@
   # placeholders (@ink@, @border@, @gap_inner@, @font_sans@ ...) from it.
-  palette = import ./utm-arch/palette.nix;
+  palette = config.house.palette;
   tokens = palette.colours // {
     border = toString palette.border;
     border_px = toString palette.borderPx;
@@ -27,8 +28,8 @@ let
   # preset underneath, so tokens not set here fall back to it. build/agent-desktop.sh
   # in utm-arch copies the same file to agent.
   claudeTheme = with palette.colours; with palette.tints; builtins.toJSON {
-    name = "House";
-    base = "light";
+    name = if palette.name == "house" then "House" else "House (${palette.name})";
+    base = palette.mode;        # "light" or "dark", from the palette
     overrides = {
       claude = rust;              # the accent: spinner, assistant label
       claudeShimmer = rustLight;
@@ -68,6 +69,10 @@ let
     (builtins.readFile file);
 in
 {
+  # Colour switching: the palette option, one specialisation per palette,
+  # `house-theme`.
+  imports = [ ./utm-arch/theme.nix ];
+
   home.username = "sakalli";
   home.homeDirectory = "/home/sakalli";
 
@@ -187,6 +192,8 @@ in
         "Notifications: do not disturb on or off|house-dnd"
         "Lock the screen|i3lock -c ${palette.bare.linen}"
         "Reload i3|i3-msg reload"
+        # One entry per palette (utm-arch/theme.nix; the default is the house style).
+        ${lib.concatMapStringsSep "\n        " (n: "\"Colours: ${n}|house-theme ${n}\"") (builtins.attrNames (import ./utm-arch/palette.nix).palettes)}
         "Restart the SPICE agent (clipboard, resize)|vdagent-restart"
       )
       if [ $# -eq 0 ]; then
