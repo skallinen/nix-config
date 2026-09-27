@@ -533,6 +533,23 @@ in
     '';
   };
 
+  # GitHub over port 443. From the VM, port 22 to github.com hangs at key exchange:
+  # something on the path drops packets over about 1230 bytes without a word (ping
+  # -M do -s 1200 passes, -s 1400 does not; suspect the Mac's VPN), and ssh.github.com
+  # :443 gets through (utm-arch wiki/macbridge.md, 2026-09-27). The host key is pinned
+  # here under the alias github.com: GitHub's published ED25519 key, fingerprint
+  # SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+  programs.ssh.extraConfig = ''
+    Host github.com
+      HostName ssh.github.com
+      Port 443
+      HostKeyAlias github.com
+      UserKnownHostsFile ~/.ssh/known_hosts ~/.ssh/known_hosts_github
+  '';
+  home.file.".ssh/known_hosts_github".text = ''
+    github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+  '';
+
   home.file.".xinitrc" = {
     source = ./utm-arch/xinitrc;
     executable = true;
