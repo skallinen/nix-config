@@ -239,6 +239,8 @@ bindsym $mod+r mode "resize"
 exec --no-startup-id systemctl --user start dunst
 bindsym $mod+n exec --no-startup-id dunstctl close
 bindsym $mod+Shift+n exec --no-startup-id house-dnd
+# Show the keys being pressed (screenkey), for screencasts and demos: on or off
+bindsym $mod+Shift+y exec --no-startup-id house-keys
 
 # The agent (agent-open in utm-home.nix): Claude Code as agent in one of its
 # clones, auto mode. Super+Shift+A picks the project, Super+Shift+T also asks

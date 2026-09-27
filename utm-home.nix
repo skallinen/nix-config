@@ -131,6 +131,13 @@ in
       ${dunst}/bin/dunstctl set-paused toggle
       pkill -RTMIN+10 -x i3blocks || true
     '')
+    # Show the keys being pressed, for screencasts and demos (Super+Shift+Y turns
+    # screenkey on or off). Nix wraps it, so match the command line, not the name.
+    (writeShellScriptBin "house-keys" ''
+      if pkill -f '/bin/.screenkey-wrapped|/bin/screenkey' ; then exit 0; fi
+      exec ${screenkey}/bin/screenkey --position bottom --font-size medium \
+        --bg-color '${palette.colours.ink}' --font-color '${palette.colours.linen}' --opacity 0.85
+    '')
     # The agent on one key (Omarchy's omarchy-agent): Super+Shift+A picks one of
     # agent's clones with rofi and opens Claude Code there as agent, in auto mode
     # (D21), in its own Ghostty window; Super+Shift+T also asks for the task.
@@ -187,6 +194,7 @@ in
         "Screenshot: region|house-shot"
         "Screenshot: whole screen|house-shot --screen"
         "Text from screen (OCR)|house-ocr"
+        "Keys on screen (screenkey): on or off|house-keys"
         "Notifications: show the last one|dunstctl history-pop"
         "Notifications: close all|dunstctl close-all"
         "Notifications: do not disturb on or off|house-dnd"
