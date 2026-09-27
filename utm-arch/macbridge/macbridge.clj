@@ -193,15 +193,47 @@
 
 ;; ---------------------------------------------------------------- server
 
+;; A fingerprint prompt (1Password's, or approve's Touch ID sheet) makes macOS leave
+;; the VM's full screen space for the desktop, and it stays there although UTM is
+;; still the front app (recorded 2026-09-27, utm-arch wiki/macbridge.md). Activating
+;; UTM alone brings its VM list window forward, not the VM (nix-config a370b31,
+;; reverted). Raising the VM window first and then activating UTM returns to the full
+;; screen space, and capture on window focus takes the keyboard again (tested by
+;; hand the same day). So: note whether UTM is in front before a request that can
+;; prompt, and afterwards raise UTM's VM window (any window but its "UTM" list).
+;; The first run asks for Automation permission (the bridge controlling UTM).
+(def utm-bundle "com.utmapp.UTM")
+
+(defn utm-in-front? []
+  (try
+    (let [asn (str/trim (:out (p/shell {:out :string :err :string} "lsappinfo" "front")))]
+      (str/includes? (:out (p/shell {:out :string :err :string}
+                                    "lsappinfo" "info" "-only" "bundleid" asn))
+                     utm-bundle))
+    (catch Exception _ false)))
+
+(defn raise-vm-window! []
+  (try (p/shell {:out :string :err :string} "osascript"
+                "-e" "tell application \"UTM\""
+                "-e" "set index of (first window whose name is not \"UTM\") to 1"
+                "-e" "activate"
+                "-e" "end tell")
+       (catch Exception _ nil)))
+
+(defn with-vm-refocus [f]
+  (let [utm? (utm-in-front?)]
+    (try (f)
+         (finally (when utm? (raise-vm-window!))))))
+
 (defn handle [req]
   (let [kind (:op req)]
     (when-not (rate-ok? kind)
       (throw (ex-info "rate limit: too many requests in the last minute" {})))
     (case kind
       "ping" {:value "pong"}
-      "read" {:value (op-read req)}
-      "inject" {:value (op-inject req)}
-      "approve" (approve req)
+      "read" (with-vm-refocus #(hash-map :value (op-read req)))
+      "inject" (with-vm-refocus #(hash-map :value (op-inject req)))
+      "approve" (with-vm-refocus #(approve req))
       (throw (ex-info (str "unknown op: " kind) {})))))
 
 (defn detail [req]
