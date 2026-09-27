@@ -193,40 +193,15 @@
 
 ;; ---------------------------------------------------------------- server
 
-;; A prompt on the Mac (1Password's, or the Touch ID sheet of approve) takes focus
-;; from UTM. With the VM in full screen, macOS then switches to another space when
-;; the prompt closes, and UTM releases capture (seen 2026-09-27). So note whether
-;; UTM was in front before a request that can prompt, and bring it back after:
-;; activating UTM switches to its full screen space, and capture on window focus
-;; takes the keyboard again. lsappinfo and open need no Automation permission.
-(def utm-bundle "com.utmapp.UTM")
-
-(defn utm-in-front? []
-  (try
-    (let [asn (str/trim (:out (p/shell {:out :string :err :string} "lsappinfo" "front")))]
-      (str/includes? (:out (p/shell {:out :string :err :string}
-                                    "lsappinfo" "info" "-only" "bundleid" asn))
-                     utm-bundle))
-    (catch Exception _ false)))
-
-(defn refocus-utm! []
-  (try (p/shell {:out :string :err :string} "open" "-b" utm-bundle)
-       (catch Exception _ nil)))
-
-(defn with-utm-refocus [f]
-  (let [utm? (utm-in-front?)]
-    (try (f)
-         (finally (when (and utm? (not (utm-in-front?))) (refocus-utm!))))))
-
 (defn handle [req]
   (let [kind (:op req)]
     (when-not (rate-ok? kind)
       (throw (ex-info "rate limit: too many requests in the last minute" {})))
     (case kind
       "ping" {:value "pong"}
-      "read" (with-utm-refocus #(hash-map :value (op-read req)))
-      "inject" (with-utm-refocus #(hash-map :value (op-inject req)))
-      "approve" (with-utm-refocus #(approve req))
+      "read" {:value (op-read req)}
+      "inject" {:value (op-inject req)}
+      "approve" (approve req)
       (throw (ex-info (str "unknown op: " kind) {})))))
 
 (defn detail [req]
