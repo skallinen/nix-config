@@ -476,11 +476,13 @@ in
       `home.packages` in `~/nix-config/utm-home.nix`, then `home-manager switch --flake
       ~/nix-config#sakalli@utm`. pacman or the AUR only when the Nix route is difficult,
       with the reason in a comment. Check nixpkgs first (`nix eval` the attribute).
+    - **The one exception is Claude Code**: it updates itself, so it comes from the native
+      installer in `~/.local/bin` (utm-arch D24). Never add it to Nix.
   '';
 
-  # Claude Code in the house colours. Claude Code is not installed for sakalli yet
-  # (agent runs it, D7), but the theme is ready if it is. settings.json stays a
-  # normal file, since Claude Code writes to it: the activation only sets "theme".
+  # Claude Code in the house colours. sakalli's Claude Code comes from the native
+  # installer in ~/.local/bin (utm-arch D24: it updates itself, so not from Nix).
+  # settings.json stays a normal file, since Claude Code writes to it: the activation only sets "theme".
   home.file.".claude/themes/house.json".text = claudeTheme;
   home.activation.claudeHouseTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -z "''${DRY_RUN:-}" ]; then

@@ -72,6 +72,8 @@ sudo bash ~/mac/common/projects/utm-arch/build/agent-desktop.sh   # agent's side
   everything else from Nix through Home Manager. A new program goes into `home.packages`
   in `utm-home.nix`; pacman or the AUR only when the Nix route is difficult, with the
   reason in a comment. Check nixpkgs first (`nix eval` the attribute).
+  Claude Code is the exception: it updates itself, so it comes from the native installer
+  in `~/.local/bin`, never from Nix.
 - D20: autologin, `startx`, session setup in `~/.xinitrc`.
 - The house style above: one accent, no image wallpapers, no rounded corners.
 
