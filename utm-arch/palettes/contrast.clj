@@ -67,8 +67,10 @@
         (if (or (>= (ratio c bg) target) (<= L 0) (>= L 1)) c (recur (+ L step)))))))
 (defn mix [a b t] (hex (map #(+ %1 (* t (- %2 %1))) (rgb a) (rgb b))))
 
+(def here (str (fs/parent (fs/absolutize *file*))))
+
 (defn palettes []
-  (let [dir (str (fs/parent (fs/absolutize *file*)))
+  (let [dir here
         out (:out (shell {:out :string} "nix" "eval" "--json" "--file"
                          (str dir "/../palette.nix") "palettes"))]
     (json/parse-string out true)))
