@@ -23,6 +23,8 @@ let
     set -eu
     default=${all.default}
     names="${lib.concatStringsSep " " names}"
+    # The cycle for next and prev: the default first, then the rest by name.
+    order="${lib.concatStringsSep " " ([ all.default ] ++ lib.remove all.default names)}"
     profile="$HOME/.local/state/nix/profiles/home-manager"
     state="''${XDG_STATE_HOME:-$HOME/.local/state}/house-theme"
     current() { cat "''${XDG_CONFIG_HOME:-$HOME/.config}/house-theme/current" 2>/dev/null || echo unknown; }
@@ -60,11 +62,22 @@ let
         reload
         exit 0 ;;
       -h|--help)
-        echo "usage: house-theme [list | NAME]    NAME is one of: $names"
+        echo "usage: house-theme [list | next | prev | NAME]    NAME is one of: $names"
         exit 0 ;;
     esac
 
     name=$1
+    # next and prev step through $order from the current palette, wrapping round.
+    if [ "$name" = next ] || [ "$name" = prev ]; then
+      set -- $order
+      [ "$name" = prev ] && set -- $(printf '%s\n' "$@" | tac)
+      cur=$(current); first=$1; pick=""; seen=""
+      for n in "$@"; do
+        if [ -n "$seen" ]; then pick=$n; break; fi
+        [ "$n" = "$cur" ] && seen=1
+      done
+      name=''${pick:-$first}
+    fi
     case " $names " in *" $name "*) ;; *) echo "house-theme: no palette '$name' (have: $names)" >&2; exit 2 ;; esac
 
     # The base generation is the one a plain `home-manager switch` made: it holds

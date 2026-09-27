@@ -53,7 +53,7 @@ systemctl --user restart dunst             # notifications
 sudo bash ~/mac/common/projects/utm-arch/build/agent-desktop.sh   # agent's side
 ```
 
-Colours: `house-theme list`, `house-theme NAME`, `house-theme house` to go back (also
+Colours: `house-theme list`, `house-theme next` (or `prev`), `house-theme NAME`, `house-theme house` to go back (also
 in the menu, "Colours: ..."). A plain `home-manager switch` always lands on the default
 (`house`); run `house-theme NAME` again after it. i3, the bar, the desktop, dunst, Ghostty
 and Claude Code follow at once; rofi and btop on their next start; agent's Claude Code
