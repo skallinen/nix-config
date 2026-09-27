@@ -465,6 +465,17 @@ in
   home.file.".claude/skills/utm-desktop/SKILL.md".source =
     ./utm-arch/agent/skills/utm-desktop/SKILL.md;
 
+  # Always-loaded instructions for a Claude Code run as sakalli (agent gets the
+  # utm-desktop skill above).
+  home.file.".claude/CLAUDE.md".text = ''
+    # Sami's instructions on the UTM VM
+
+    - **Installing software: Nix first** (utm-arch D12, D13, D24). New programs go into
+      `home.packages` in `~/nix-config/utm-home.nix`, then `home-manager switch --flake
+      ~/nix-config#sakalli@utm`. pacman or the AUR only when the Nix route is difficult,
+      with the reason in a comment. Check nixpkgs first (`nix eval` the attribute).
+  '';
+
   # Claude Code in the house colours. Claude Code is not installed for sakalli yet
   # (agent runs it, D7), but the theme is ready if it is. settings.json stays a
   # normal file, since Claude Code writes to it: the activation only sets "theme".

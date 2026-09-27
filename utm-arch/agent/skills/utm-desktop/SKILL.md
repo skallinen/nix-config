@@ -68,8 +68,10 @@ sudo bash ~/mac/common/projects/utm-arch/build/agent-desktop.sh   # agent's side
 - D7, D16, D21: agent runs Claude Code, in auto mode, behind the egress firewall;
   agent never reads sakalli's home; no bypass mode outside the firewall.
 - D9, D10: no GL, 8 GB, 4 cores: no compositor (picom), no local models.
-- D12, D13: pacman only for the base (Xorg, i3, i3lock, PAM, audio, guest tools);
-  everything else from Nix through Home Manager.
+- D12, D13, D24: pacman only for the base (Xorg, i3, i3lock, PAM, audio, guest tools);
+  everything else from Nix through Home Manager. A new program goes into `home.packages`
+  in `utm-home.nix`; pacman or the AUR only when the Nix route is difficult, with the
+  reason in a comment. Check nixpkgs first (`nix eval` the attribute).
 - D20: autologin, `startx`, session setup in `~/.xinitrc`.
 - The house style above: one accent, no image wallpapers, no rounded corners.
 
