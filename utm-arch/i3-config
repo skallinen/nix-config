@@ -164,6 +164,11 @@ bindsym $mod+Control+0 workspace 20
 # bindsym XF86AudioMute exec --no-startup-id toggle.sh 
 bindsym XF86AudioLowerVolume workspace prev 
 bindsym XF86AudioRaiseVolume workspace next 
+# Cmd+Tab and Cmd+Shift+Tab: next and previous workspace. Command arrives as Super
+# (D1), and UTM captures the keyboard on window focus (D18), which is what hands
+# Cmd+Tab to the guest; without capture macOS keeps it (utm-arch wiki/cmd-as-super.md).
+bindsym $mod+Tab workspace next
+bindsym $mod+Shift+Tab workspace prev
 #bindsym XF86Display workspace 7
 #bindsym XF86Tools workspace 8
 
