@@ -500,6 +500,21 @@ in
     fi
   '';
 
+  # The Mac's status line: context size and the 5-hour usage window. The script is a
+  # Nix file; settings.json only points at it (same reason as the theme above).
+  home.file.".claude/statusline.sh" = {
+    source = ./utm-arch/claude-statusline.sh;
+    executable = true;
+  };
+  home.activation.claudeStatusLine = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.claude/settings.json"
+      mkdir -p "$HOME/.claude"
+      [ -s "$f" ] || echo '{}' > "$f"
+      ${pkgs.jq}/bin/jq '.statusLine = {"type": "command", "command": "~/.claude/statusline.sh"}' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    fi
+  '';
+
   programs.emacs = {
     enable = true;
     package = pkgs.emacs;    # X11 (GTK) build: the guest runs i3 on X11 (D3)
