@@ -11,7 +11,7 @@
     linen = "#efe9dd";      # bg-dim
     white = "#fbf7f0";      # bg-main
     ink = "#000000";        # fg-main
-    rust = "#006800";       # green, the accent
+    rust = "#006300";       # green, the accent
     graphite = "#595959";   # fg-dim
     dim = "#a6a6a6";        # the port's ANSI 7: quiet text on the black bar
     muted = "#595959";      # fg-dim
@@ -25,15 +25,16 @@
     rustPale = "#eccbc5";
     rustPaler = "#f3e1da";
     rustWord = "#db9995";
-    olivePale = "#ceddc5";
+    olivePale = "#cedcc5";
     olivePaler = "#e4eada";
-    oliveWord = "#9cc195";
-    selection = "#c4d8bb";
+    oliveWord = "#9cbf95";
+    selection = "#c4d6bb";
   };
-  # The port's colours; 7 is fg-dim (the port's #a6a6a6 is 2.3 on the card) and
+  # The port's colours, with green, yellow and cyan as modus-themes.el 5.3.0 has
+  # them (the port has #006800, #6f5500, #005e8b); 7 is fg-dim (the port's #a6a6a6 is 2.3 on the card) and
   # 15 is black (the port's #595959), so both read on paper.
   ansi = [
-    "#000000" "#a60000" "#006800" "#6f5500" "#0031a9" "#721045" "#005e8b" "#595959"
+    "#000000" "#a60000" "#006300" "#6d5000" "#0031a9" "#721045" "#00598b" "#595959"
     "#8f8f8f" "#972500" "#00663f" "#884900" "#3548cf" "#531ab6" "#005f5f" "#000000"
   ];
   # 8: the port has #595959 (the same as 7); here the port's #a6a6a6, fitted to 3.

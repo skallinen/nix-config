@@ -11,14 +11,14 @@
   colours = {
     linen = "#f2e9e1";      # overlay
     white = "#fffaf3";      # surface
-    ink = "#575279";        # text
+    ink = "#464261";        # text (palette.json; the Ghostty port still has the older #575279)
     rust = "#ab5b72";       # love #b4637a, fitted to 4.5 under paper text
     graphite = "#6a6683";   # subtle #797593, fitted to 4.5 under the ground colour
     dim = "#cecacd";        # highlight high: quiet text on the purple bar
     muted = "#6a6683";      # subtle, fitted (4.2 on the card, 3.7 on the ground as it is)
     teal = "#286983";       # pine, split indicator
-    rustLight = "#f0c1bf";  # Rosé Pine (main) rose #ebbcba, fitted to 4.5 on the bar
-    rustBright = "#f0c1bf"; # (no surface uses this token today)
+    rustLight = "#ebbcba";  # Rosé Pine (main) rose, on the bar
+    rustBright = "#ebbcba"; # (no surface uses this token today)
   };
   # Mixed from the card towards love, pine and the accent (contrast.clj mix).
   tints = {
@@ -34,8 +34,8 @@
   # The port's mapping (pine in the green slot, foam in blue, rose in cyan); 0 and
   # 15 are `text` (the port's 0 is the pale overlay, invisible on paper).
   ansi = [
-    "#575279" "#ab5b72" "#286983" "#ab6200" "#3e7c87" "#806b99" "#ad5c59" "#74708e"
-    "#948fa1" "#b4637a" "#286983" "#cc8100" "#56949f" "#907aa9" "#ce7a76" "#575279"
+    "#464261" "#ab5b72" "#286983" "#ab6200" "#3e7c87" "#806b99" "#ad5c59" "#74708e"
+    "#948fa1" "#b4637a" "#286983" "#cc8100" "#56949f" "#907aa9" "#ce7a76" "#464261"
   ];
   # fitted: 1 #b4637a, 3 #ea9d34, 4 #56949f, 5 #907aa9, 6 #d7827e, 7 #797593,
   # 8 #9893a5, 11 #ea9d34, 14 #d7827e
