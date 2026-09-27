@@ -92,6 +92,8 @@ in
   fonts.fontconfig.defaultFonts = {
     monospace = [ "RobotoMono Nerd Font" ];
     sansSerif = [ "HN" ];
+    # Without an emoji font, web pages showed emoji as text glyphs and empty boxes.
+    emoji = [ "Noto Color Emoji" ];
   };
   xdg.configFile."fontconfig/conf.d/60-hn.conf".source = ./utm-arch/fontconfig-hn.conf;
 
@@ -103,6 +105,7 @@ in
     nerd-fonts.roboto-mono   # same as the Macs' fonts.packages
     nerd-fonts.meslo-lg      # alacritty's font in shared-home.nix
     fira-code-symbols        # fira-code-mode in myinit.org (Linux only)
+    noto-fonts-color-emoji   # fonts.fontconfig.defaultFonts.emoji
     xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
     xsetroot                 # i3 paints the linen desktop with it
     jq                       # utm-arch build/agent-desktop.sh edits agent's settings.json with it
