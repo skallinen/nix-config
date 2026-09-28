@@ -4,7 +4,7 @@
 # tools) is ~/common/projects/utm-arch/pacman.txt; this file is everything else.
 #
 # Switch inside the VM:  home-manager switch --flake ~/nix-config#sakalli@utm
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, unstable, ... }:
 
 let
   # The palette (utm-arch/palette.nix, chosen by utm-arch/theme.nix: the default
@@ -114,6 +114,11 @@ in
     google-chrome            # the browser; nixpkgs builds it for aarch64-linux (Sami: Nix before pacman or AUR)
     xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
     alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
+    # OpenAI Codex CLI from nixos-unstable: nixos-26.05 had 0.146.0 (2026-07-29),
+    # two months and 12 releases behind; unstable had 0.157.0 against upstream 0.158.0
+    # (2026-09-28). Update: `nix flake update nixpkgs-unstable`, then switch. It
+    # does not replace itself; its startup update notice can be ignored (utm-arch D25).
+    unstable.codex
     # Session half of the SPICE agent, run from ~/.xinitrc (the daemon stays the
     # pacman one). Patched: 0.23.0 gives the modes it creates a pixel clock 1000
     # times too low, and since Linux 6.19 virtio-gpu paces vblank by that clock, so

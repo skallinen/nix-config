@@ -12,9 +12,13 @@
     # Darwin Support
     darwin.url = "github:lnl7/nix-darwin/nix-darwin-26.05";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Unstable, for single fast moving CLIs only (codex on the utm VM). GUI apps
+    # and GPU drivers stay on one nixpkgs (utm-arch wiki/home-manager-standalone.md, pitfall 6).
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, darwin, home-manager, ... }: 
+  outputs = { self, nixpkgs, nixpkgs-unstable, darwin, home-manager, ... }: 
   let
     # Helper to clean up configuration definitions
     mkMac = host: module: darwin.lib.darwinSystem {
@@ -62,6 +66,7 @@
     #   home-manager switch --flake ~/nix-config#sakalli@utm
     homeConfigurations."sakalli@utm" = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs { system = "aarch64-linux"; config.allowUnfree = true; };
+      extraSpecialArgs.unstable = import nixpkgs-unstable { system = "aarch64-linux"; config.allowUnfree = true; };
       modules = [ ./shared-home.nix ./utm-home.nix ./utm-arch/macbridge/home.nix ];
     };
 
