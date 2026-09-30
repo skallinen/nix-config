@@ -67,6 +67,10 @@ let
     (map (n: "@${n}@") (builtins.attrNames tokens))
     (builtins.attrValues tokens)
     (builtins.readFile file);
+  # Sami's files live on the Mac, in ~/mac/utm-arch (the share, D16): the VM disk
+  # can be rebuilt, and the Mac backs them up. Lowercase names.
+  files = "/home/sakalli/mac/utm-arch";
+  userDirs = [ "documents" "downloads" "music" "pictures" "screenshots" "videos" ];
 in
 {
   # Colour switching: the palette option, one specialisation per palette,
@@ -96,6 +100,43 @@ in
     emoji = [ "Noto Color Emoji" ];
   };
   xdg.configFile."fontconfig/conf.d/60-hn.conf".source = ./utm-arch/fontconfig-hn.conf;
+
+  # Where apps put downloads, documents and pictures (user-dirs.dirs, read by
+  # browsers, file dialogs, GTK and Qt): on the Mac, see `files` above. The share
+  # is about 36 MB/s and 2.5 ms per file (utm-arch wiki/utm-file-sharing.md,
+  # measured 2026-09-30): fine for these, too slow for code and caches, which stay
+  # on the VM disk. Desktop is the folder itself; templates, public and projects
+  # are not used.
+  xdg.userDirs = {
+    enable = true;
+    desktop = files;
+    documents = "${files}/documents";
+    download = "${files}/downloads";
+    music = "${files}/music";
+    pictures = "${files}/pictures";
+    videos = "${files}/videos";
+    publicShare = null;
+    templates = null;
+    projects = null;
+    extraConfig.SCREENSHOTS = "${files}/screenshots";
+  };
+  # The folders are made only when the share is mounted. Home Manager's own
+  # createDirectories would make them on the VM disk under an unmounted ~/mac,
+  # where the Mac never sees them and the mount later hides them.
+  home.activation.userDirsOnMac = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if ${pkgs.util-linux}/bin/mountpoint -q /home/sakalli/mac; then
+      run mkdir -p ${lib.concatMapStringsSep " " (d: "${files}/${d}") userDirs}
+    else
+      echo "~/mac is not mounted: ${files} not created" >&2
+    fi
+  '';
+  # Short names in the VM home: ~/downloads and so on lead to the Mac folders.
+  home.file."documents".source = config.lib.file.mkOutOfStoreSymlink "${files}/documents";
+  home.file."downloads".source = config.lib.file.mkOutOfStoreSymlink "${files}/downloads";
+  home.file."music".source = config.lib.file.mkOutOfStoreSymlink "${files}/music";
+  home.file."pictures".source = config.lib.file.mkOutOfStoreSymlink "${files}/pictures";
+  home.file."screenshots".source = config.lib.file.mkOutOfStoreSymlink "${files}/screenshots";
+  home.file."videos".source = config.lib.file.mkOutOfStoreSymlink "${files}/videos";
 
   programs.home-manager.enable = true;
 
@@ -168,15 +209,20 @@ in
       exec ${ghostty}/bin/ghostty --class=house.agent -e sudo -n -u agent /usr/local/bin/agent-claude "$proj" ''${task:+"$task"}
     '')
     # Screenshots (Super+Shift+S or the menu): a region, or the whole screen with
-    # --screen, to the clipboard and to ~/Pictures/screenshots.
+    # --screen, to the clipboard and to ~/screenshots (on the Mac, see `files`).
+    # With the share not mounted it goes to the clipboard only.
     (writeShellScriptBin "house-shot" ''
       set -eu
-      dir="$HOME/Pictures/screenshots"; mkdir -p "$dir"
+      dir="${files}/screenshots"; where="and in ~/screenshots"
+      if ! ${util-linux}/bin/mountpoint -q /home/sakalli/mac; then
+        dir=$(mktemp -d); where="only: ~/mac is not mounted, nothing saved"
+      fi
+      mkdir -p "$dir"
       f="$dir/$(date +%Y-%m-%d-%H%M%S).png"
       if [ "''${1:-}" = --screen ]; then ${maim}/bin/maim -u "$f"
       else ${maim}/bin/maim -s -u "$f" || exit 0; fi
       ${xclip}/bin/xclip -selection clipboard -t image/png < "$f"
-      ${libnotify}/bin/notify-send -u low "Screenshot" "On the clipboard and in ~/Pictures/screenshots"
+      ${libnotify}/bin/notify-send -u low "Screenshot" "On the clipboard $where"
     '')
     # Text from the screen (Super+Ctrl+S or the menu; Omarchy's OCR): select a
     # region, tesseract reads it (English and Finnish), the text goes to the
@@ -501,18 +547,28 @@ in
       with the reason in a comment. Check nixpkgs first (`nix eval` the attribute).
     - **The one exception is Claude Code**: it updates itself, so it comes from the native
       installer in `~/.local/bin` (utm-arch D24). Never add it to Nix.
+    - **Every system change reaches the bootstrap, in the same session** (utm-arch D26).
+      A change made by hand or by a one-off command (a package, a file in `/etc` or `~`,
+      a service, a UTM or Mac setting) is not done until it is also in `~/nix-config` or
+      in a script the utm-arch build runs (`~/mac/common/projects/utm-arch/build/`,
+      listed in its README). What cannot be scripted goes into utm-arch `PLAN.md` as a
+      manual step. Trying it by hand first is fine; say in the reply where it was captured.
+    - **Sami's files are on the Mac** (utm-arch D27): `~/downloads`, `~/documents`,
+      `~/pictures`, `~/screenshots` and so on lead to `~/mac/utm-arch/`.
   '';
 
-  # Claude Code in the house colours. sakalli's Claude Code comes from the native
+  # Claude Code's theme for sakalli: the built-in "dark" (Sami's choice, 2026-09-30).
+  # The house theme stays installed for agent (build/agent-desktop.sh copies it) and
+  # as "custom:house" in /theme. sakalli's Claude Code comes from the native
   # installer in ~/.local/bin (utm-arch D24: it updates itself, so not from Nix).
   # settings.json stays a normal file, since Claude Code writes to it: the activation only sets "theme".
   home.file.".claude/themes/house.json".text = claudeTheme;
-  home.activation.claudeHouseTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.claudeTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -z "''${DRY_RUN:-}" ]; then
       f="$HOME/.claude/settings.json"
       mkdir -p "$HOME/.claude"
       [ -s "$f" ] || echo '{}' > "$f"
-      ${pkgs.jq}/bin/jq '.theme = "custom:house"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+      ${pkgs.jq}/bin/jq '.theme = "dark"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
     fi
   '';
 

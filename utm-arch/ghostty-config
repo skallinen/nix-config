@@ -13,9 +13,10 @@ font-family = "RobotoMono Nerd Font"
 # The house colours (utm-arch wiki/utm-theme.md): a white card with ink text,
 # as the house pages, framed by i3's ink or rust border on the linen desktop. The
 # rust accent for the cursor and the selection. White, not the M3800's black,
-# because Claude Code runs here in its light house theme (~/.claude/themes/house.json),
-# which is unreadable on a dark ground. The 16 ANSI colours are palette.nix's
-# `ansi`: muted, rust for red, after Omarchy's flexoki-light.
+# because agent's Claude Code runs here in its light house theme
+# (~/.claude/themes/house.json), which is unreadable on a dark ground. sakalli's
+# Claude Code uses the built-in "dark" theme since 2026-09-30 (Sami's choice).
+# The 16 ANSI colours are palette.nix's `ansi`: muted, rust for red, after Omarchy's flexoki-light.
 # Values from utm-arch/palette.nix (utm-home.nix fills the @tokens@).
 background = @white@
 foreground = @ink@

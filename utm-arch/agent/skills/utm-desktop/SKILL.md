@@ -79,6 +79,16 @@ theme only after `agent-desktop.sh` runs again.
 - Never restart Xorg, never stop or suspend the VM, never quit UTM. Restart the SPICE
   session agent only with `vdagent-restart`.
 
+## Every change reaches the bootstrap (utm-arch D26)
+
+A change is not done until a rebuild from `nix-config` and utm-arch `build/` would
+make it again. Anything first tried by hand (a package, a file in `/etc` or `~`, a
+service, a UTM or Mac setting) is declared in Home Manager or nix-darwin, or put in a
+build script the main flow runs and listed in `build/README.md`, in the same session.
+What cannot be scripted goes into utm-arch `PLAN.md` as a manual step with its exact
+setting. Sami's files (downloads, documents, pictures, screenshots) live on the Mac in
+`~/mac/utm-arch/` (D27).
+
 ## Decisions not to reopen (utm-arch `DECISIONS.md`)
 
 - D3: i3 on X11 (not Sway, Hyprland or Omarchy itself).
