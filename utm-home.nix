@@ -600,6 +600,23 @@ in
     fi
   '';
 
+  # Remote Control for every interactive session of sakalli's (Sami, 2026-09-30):
+  # the key the /config toggle "Enable Remote Control for all sessions" writes. It
+  # lets the VM and Mac sessions message each other (assistant repo
+  # wiki/agent-mailbox.md). isolatePeerMachines: every message to a session on
+  # another machine waits for Sami's approval here in the VM (Sami, 2026-09-30).
+  # The Mac has it off, so the host answers the VM without a prompt. Not for
+  # agent, which stays off Remote Control (build/agent-desktop.sh leaves it out).
+  # The Mac's settings.json is hand-kept: utm-arch PLAN.md step 24.
+  home.activation.claudeRemoteControl = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.claude/settings.json"
+      mkdir -p "$HOME/.claude"
+      [ -s "$f" ] || echo '{}' > "$f"
+      ${pkgs.jq}/bin/jq '.remoteControlAtStartup = true | .isolatePeerMachines = true' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    fi
+  '';
+
   programs.emacs = {
     enable = true;
     package = pkgs.emacs;    # X11 (GTK) build: the guest runs i3 on X11 (D3)
