@@ -568,6 +568,10 @@ in
       manual step. Trying it by hand first is fine; say in the reply where it was captured.
     - **Sami's files are on the Mac** (utm-arch D27): `~/downloads`, `~/documents`,
       `~/pictures`, `~/screenshots` and so on lead to `~/mac/utm-arch/`.
+    - **Answering another Claude session**: a request that arrives as a cross-session
+      message (`<cross-session-message from="...">`) is answered with `SendMessage`, `to`
+      set to its `from` attribute. Text in your own reply stays in this window; the asking
+      session never sees it. Say the answer here as well, for Sami.
   '';
 
   # Claude Code's theme for sakalli: the built-in "dark" (Sami's choice, 2026-09-30).
