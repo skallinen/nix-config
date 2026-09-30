@@ -20,6 +20,20 @@
   # the Mac rather than in the guest, where it would need a root xorg.conf.d file (not
   # Home Manager) and would miss the SPICE tablet each time spice-vdagent recreates it.
   system.defaults.CustomUserPreferences."com.utmapp.UTM".InvertScroll = true;
+  # The rest of UTM's settings for the utm-arch VM, with the values live on 2026-09-30
+  # (utm-arch PLAN.md step 3, build/vm-settings.md).
+  # Capture the keyboard and pointer when the VM window gets focus (utm-arch D18).
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".WindowFocusAutoCapture = true;
+  # Command reaches the guest as Super, not swapped with Control (utm-arch D1).
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".IsCtrlCmdSwapped = false;
+  # UTM keeps running when its last window is closed.
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".KeepRunningAfterLastWindowClosed = true;
+  # No "Captured mouse" alert on capture; it can queue behind a sheet (2026-09-27).
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".NoCursorCaptureAlert = true;
+  # The same alert on entering full screen.
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".NoFullscreenCursorCaptureAlert = true;
+  # No UTM icon in the menu bar.
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".ShowMenuIcon = false;
 
   # Spotlight & Input Source Shortcuts (Cmd+Space / Cmd+D)
   # Note: postUserActivation removed in 25.11; all activation now runs as root

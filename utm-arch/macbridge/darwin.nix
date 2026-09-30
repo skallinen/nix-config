@@ -17,7 +17,7 @@
 let
   user = config.system.primaryUser;
   home = "/Users/${user}";
-  vmHost = "192.168.64.7";     # same address as `Host utm` in shared-home.nix
+  vmHost = import ../vm-address.nix;   # also `Host utm` in shared-home.nix
   vmUser = "sakalli";
   bridgeSock = "${home}/.local/run/macbridge/bridge.sock";
   opAgentSock = "${home}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";

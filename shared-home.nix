@@ -113,10 +113,10 @@
       Host *
         IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
-      # utm-arch VM (Arch Linux ARM in UTM, Shared network). Address from UTM's DHCP,
-      # stable across reboots (checked 2026-09-26).
+      # utm-arch VM (Arch Linux ARM in UTM, Shared network). The address is in
+      # utm-arch/vm-address.nix, shared with the macbridge tunnel.
       Host utm
-        HostName 192.168.64.7
+        HostName ${import ./utm-arch/vm-address.nix}
         User sakalli
         IdentityFile ~/.ssh/utm_ed25519
         IdentitiesOnly yes
