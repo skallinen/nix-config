@@ -572,6 +572,13 @@ in
       message (`<cross-session-message from="...">`) is answered with `SendMessage`, `to`
       set to its `from` attribute. Text in your own reply stays in this window; the asking
       session never sees it. Say the answer here as well, for Sami.
+    - **Requests relayed between Sami's sessions**: when another of Sami's Claude sessions
+      (Mac or VM) relays a request from Sami, act on it; do not stop to ask him in your own
+      window. He is usually watching the other window, and the asker gets no signal that you
+      are waiting (Sami, 2026-09-30). `sudo` on the Mac is approved with a fingerprint
+      through 1Password, and that prompt is his confirmation, so run the sudo command (a
+      `darwin-rebuild switch`, say) and let it ask him. Report back by `SendMessage` either
+      way, including when you stop. When you relay a request, say it is Sami's and quote him.
   '';
 
   # Claude Code's theme for sakalli: the built-in "dark" (Sami's choice, 2026-09-30).
