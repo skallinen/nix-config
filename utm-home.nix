@@ -140,6 +140,19 @@ in
 
   programs.home-manager.enable = true;
 
+  # Chrome (home.packages) opens links and web pages. Set by hand in the VM on
+  # 2026-09-27; Home Manager now owns ~/.config/mimeapps.list.
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/html" = "google-chrome.desktop";
+      "x-scheme-handler/http" = "google-chrome.desktop";
+      "x-scheme-handler/https" = "google-chrome.desktop";
+      "x-scheme-handler/about" = "google-chrome.desktop";
+      "x-scheme-handler/unknown" = "google-chrome.desktop";
+    };
+  };
+
   home.packages = with pkgs; [
     ghostty                  # Super+Return; ALARM has no ghostty package
     rofi                     # Super+D, `rofi -show run` as on Margaret
