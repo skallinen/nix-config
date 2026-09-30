@@ -76,6 +76,14 @@ theme only after `agent-desktop.sh` runs again.
   next plain `home-manager switch` goes back to the default palette.
 - Claude Code hooks have no controlling terminal: `/dev/tty` fails, write to the
   pty of the Claude Code process (see `claude-notify`).
+- A `home-manager switch` restarts `dunst.service`, and it dies with "Cannot open X11
+  display" when the user systemd environment has lost `DISPLAY` (seen 2026-09-30 at
+  10:10, and in an earlier `hm-switch.log`; why it goes missing is not known, since
+  `~/.xinitrc` imports it at login). Then no notifications show. Fix:
+  `DISPLAY=:0 XAUTHORITY=~/.Xauthority systemctl --user import-environment DISPLAY XAUTHORITY`,
+  `systemctl --user reset-failed dunst`, `systemctl --user start dunst`.
+- `screendump` in rofi is the console tool from `kbd` (text of a virtual console), not
+  a screenshot: use `house-shot` (Super+Shift+S, or "Screenshot" in the menu).
 - Never restart Xorg, never stop or suspend the VM, never quit UTM. Restart the SPICE
   session agent only with `vdagent-restart`.
 
