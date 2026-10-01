@@ -166,6 +166,10 @@ in
   home.file."pictures".source = config.lib.file.mkOutOfStoreSymlink "${files}/pictures";
   home.file."screenshots".source = config.lib.file.mkOutOfStoreSymlink "${files}/screenshots";
   home.file."videos".source = config.lib.file.mkOutOfStoreSymlink "${files}/videos";
+  # ~/notes is the Mac's ~/notes (Sami, 2026-10-01): myinit.org's org-agenda-files,
+  # refile targets and org-gcal output all name ~/notes/..., which did not exist in the
+  # VM, so the agenda and refiling had no task files.
+  home.file."notes".source = config.lib.file.mkOutOfStoreSymlink "/home/sakalli/mac/notes";
 
   programs.home-manager.enable = true;
 
