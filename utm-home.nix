@@ -195,6 +195,7 @@ in
     libnotify                # notify-send, for scripts and the agent's notifications
     i3blocks                 # the bar's status line (i3-config, bar block)
     google-chrome            # the browser; nixpkgs builds it for aarch64-linux (Sami: Nix before pacman or AUR)
+    nodejs                   # the assistant's Playwright portal tools (tools/portal, run as `node node_modules/nbb/cli.js`); the Mac has it in darwin-configuration.nix
     xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
     alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
     # VoiceMode, the Claude Code plugin (marketplace mbailey/voicemode, Sami
