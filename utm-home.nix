@@ -715,14 +715,18 @@ in
   # - STT_BASE_URLS: OpenAI only. The default tries a local Whisper on 127.0.0.1:2022
   #   first, which this VM does not run, and then logs every reply as "whisper-local".
   # - WHISPER_LANGUAGE en: Sami speaks English (voicemode-key writes it too).
+  # - SILENCE_THRESHOLD_MS 3000: the default 1000 ended his turn at every thinking
+  #   pause, mid-sentence (Sami, 2026-10-01: "you're cutting me off very often ...
+  #   when I'm thinking I will be slower"). Costs about 3 s of wait after each reply.
   home.activation.voiceModeEnv = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -z "''${DRY_RUN:-}" ]; then
       f="$HOME/.voicemode/voicemode.env"
       mkdir -p "$HOME/.voicemode"
       touch "$f"; chmod 600 "$f"
       { grep -v -e '^VOICEMODE_MIN_RECORDING_DURATION=' -e '^VOICEMODE_STT_BASE_URLS=' \
-                -e '^VOICEMODE_WHISPER_LANGUAGE=' "$f" || true
+                -e '^VOICEMODE_WHISPER_LANGUAGE=' -e '^VOICEMODE_SILENCE_THRESHOLD_MS=' "$f" || true
         echo "VOICEMODE_MIN_RECORDING_DURATION=5"
+        echo "VOICEMODE_SILENCE_THRESHOLD_MS=3000"
         echo "VOICEMODE_STT_BASE_URLS=https://api.openai.com/v1"
         echo "VOICEMODE_WHISPER_LANGUAGE=en"; } > "$f.tmp"
       chmod 600 "$f.tmp"; mv "$f.tmp" "$f"
