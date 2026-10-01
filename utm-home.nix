@@ -170,11 +170,16 @@ in
   programs.home-manager.enable = true;
 
   # Chrome (home.packages) opens links and web pages. Set by hand in the VM on
-  # 2026-09-27; Home Manager now owns ~/.config/mimeapps.list.
+  # 2026-09-27; Home Manager now owns ~/.config/mimeapps.list. PDFs open in Chrome
+  # too, so `xdg-open` (xdg-utils, home.packages) shows a link, a local page or a PDF
+  # in the VM without a trip to the Mac (Sami, 2026-10-01: "we are not using any apps
+  # on the macos, only a browser").
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
       "text/html" = "google-chrome.desktop";
+      "application/xhtml+xml" = "google-chrome.desktop";
+      "application/pdf" = "google-chrome.desktop";
       "x-scheme-handler/http" = "google-chrome.desktop";
       "x-scheme-handler/https" = "google-chrome.desktop";
       "x-scheme-handler/about" = "google-chrome.desktop";
@@ -193,6 +198,10 @@ in
     xsetroot                 # i3 paints the linen desktop with it
     jq                       # utm-arch build/agent-desktop.sh edits agent's settings.json with it
     libnotify                # notify-send, for scripts and the agent's notifications
+    xclip                    # the X clipboard from a shell; spice-vdagent (below) syncs it with the Mac's
+    xsel                     # the same, for tools that look for xsel rather than xclip
+    xdg-utils                # xdg-open and xdg-settings: links, pages and PDFs open in Chrome (xdg.mimeApps)
+    poppler-utils            # pdftotext, for the assistant's eTasku filler (bin/etasku-fill.clj); Arch's poppler is only a CUPS dependency
     i3blocks                 # the bar's status line (i3-config, bar block)
     google-chrome            # the browser; nixpkgs builds it for aarch64-linux (Sami: Nix before pacman or AUR)
     nodejs                   # the assistant's Playwright portal tools (tools/portal, run as `node node_modules/nbb/cli.js`); the Mac has it in darwin-configuration.nix
@@ -865,9 +874,33 @@ in
       Port 443
       HostKeyAlias github.com
       UserKnownHostsFile ~/.ssh/known_hosts ~/.ssh/known_hosts_github
+    # Margaret, the assistant's home server (assistant repo wiki/environment.md,
+    # "Reaching the running server"), with the VM's own key (Sami, 2026-10-01: no more
+    # hopping through the Mac for simple work). The key is a plain file without a
+    # passphrase, like the Mac's margaret_ed25519, made and authorised by utm-arch
+    # build/margaret-key.sh; it is never in Nix. At home the VM reaches 192.168.10.44
+    # through UTM's NAT. Away, the Match below goes through the Mac to the
+    # assistant-vault rendezvous (2.29.9.207, Margaret's reverse tunnel on its loopback
+    # :2222) with the Mac's hetzner_rendezvous_ed25519, so the VM needs no vault key.
+    # HostKeyAlias pins Margaret's real host key on both routes.
+    Host margaret
+      HostName 192.168.10.44
+      User sakalli
+      IdentityFile ~/.ssh/margaret_vm_ed25519
+      IdentitiesOnly yes
+      HostKeyAlias 192.168.10.44
+      UserKnownHostsFile ~/.ssh/known_hosts ~/.ssh/known_hosts_margaret
+      ConnectTimeout 15
+    Match originalhost margaret !exec "timeout 2 bash -c 'exec 3<>/dev/tcp/192.168.10.44/22' 2>/dev/null"
+      ProxyCommand ssh mac 'ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/hetzner_rendezvous_ed25519 -W 127.0.0.1:2222 root@2.29.9.207'
   '';
   home.file.".ssh/known_hosts_github".text = ''
     github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+  '';
+  # Margaret's host key, as the Mac's known_hosts has it and ssh-keyscan showed on the
+  # LAN (2026-10-01).
+  home.file.".ssh/known_hosts_margaret".text = ''
+    192.168.10.44 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICG0fiyw4PFuZ+2bvz0sVslhPOZvzKew0O3l2DAL83xf
   '';
 
   home.file.".xinitrc" = {
