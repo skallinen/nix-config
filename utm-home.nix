@@ -101,6 +101,35 @@ in
   };
   xdg.configFile."fontconfig/conf.d/60-hn.conf".source = ./utm-arch/fontconfig-hn.conf;
 
+  # Emacs editing keys in text fields (C-a, C-e, C-k, M-f...), as Cocoa gives them
+  # on the Mac (Sami, 2026-10-01). Two readers, two places:
+  # - Chrome does not use GTK's key theme files any more. Its ui/gtk
+  #   gtk_key_bindings_handler.cc reads the GSettings key
+  #   org.gnome.desktop.interface gtk-key-theme and, when it is "Emacs", applies
+  #   its own fixed table. The Nix google-chrome wrapper loads the dconf GIO
+  #   module, so the value has to be in dconf: settings.ini alone did nothing
+  #   in Chrome 154 (tested 2026-10-01).
+  # - Plain GTK 3 apps read gtk-key-theme-name from settings.ini (the "Emacs"
+  #   theme ships in gtk3's share/themes). GTK 4 has no key themes.
+  # A running Chrome picks this up only after a restart. Which keys Chrome
+  # still takes for itself: utm-arch wiki/utm-input-and-keyboard.md.
+  gtk = {
+    enable = true;
+    gtk3.extraConfig.gtk-key-theme-name = "Emacs";
+    gtk2.extraConfig = ''gtk-key-theme-name = "Emacs"'';
+  };
+  dconf.settings."org/gnome/desktop/interface".gtk-key-theme = "Emacs";
+  # Home Manager writes dconf through the session bus, and without
+  # DBUS_SESSION_BUS_ADDRESS (a switch from ssh or from Claude's shell) it starts
+  # Nix's dbus-run-session instead, which looks for /etc/dbus-1/session.conf.
+  # Arch keeps that file in /usr/share, so the whole switch failed (exit 127,
+  # 2026-10-01). The user bus is always at /run/user/$UID/bus here; point at it.
+  home.activation.dconfSessionBus = lib.hm.dag.entryBefore [ "dconfSettings" ] ''
+    if [[ ! -v DBUS_SESSION_BUS_ADDRESS && -S "/run/user/$(id -u)/bus" ]]; then
+      export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+    fi
+  '';
+
   # Where apps put downloads, documents and pictures (user-dirs.dirs, read by
   # browsers, file dialogs, GTK and Qt): on the Mac, see `files` above. The share
   # is about 36 MB/s and 2.5 ms per file (utm-arch wiki/utm-file-sharing.md,
