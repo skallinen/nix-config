@@ -217,6 +217,7 @@ in
     nodejs                   # the assistant's Playwright portal tools (tools/portal, run as `node node_modules/nbb/cli.js`); the Mac has it in darwin-configuration.nix
     xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
     alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
+    android-tools            # adb: the assistant's bin/phone-pull.clj reads SMS and calls off Sami's Pixel (USB passed through from the Mac)
     # VoiceMode, the Claude Code plugin (marketplace mbailey/voicemode, Sami
     # 2026-09-30): its MCP server starts as `uv run voicemode` and converts audio
     # with ffmpeg. Plugin, key and audio setup: the claudeVoiceMode activation below.
@@ -841,6 +842,36 @@ in
     client.enable = true;
   };
   systemd.user.services.emacs.Service.TimeoutStartSec = "30min";
+
+  # The phone archive (assistant repo bin/phone-pull.clj, wiki/phone-archive.md; Sami,
+  # 2026-10-01: "an archive of smses on margaret that we can pull every time we hook
+  # the phone to the laptop", "also calls and durations"). Every minute `auto` asks
+  # `adb devices`, and does nothing unless one authorised phone is attached, Margaret
+  # answers on the LAN and the last good pull is over an hour old; then it reads SMS,
+  # MMS and the call log (read-only) and appends what is new to
+  # ~/assistant/state/phone on Margaret. No udev rule: systemd's 70-uaccess already
+  # gives the seat user an ACL on the phone's USB node. Away from home it skips, since
+  # the away route to Margaret goes through the Mac; `pull` by hand works anywhere.
+  systemd.user.services.phone-pull = {
+    Unit = {
+      Description = "Pull SMS and calls from the phone into the archive on Margaret";
+      ConditionPathExists = "%h/mac/common/projects/assistant/bin/phone-pull.clj";
+    };
+    Service = {
+      Type = "oneshot";
+      Environment = "PATH=%h/.nix-profile/bin:/usr/bin";
+      ExecStart = "%h/.nix-profile/bin/bb %h/mac/common/projects/assistant/bin/phone-pull.clj auto";
+      TimeoutStartSec = "30min";   # a first pull reads MMS addresses at about 1.2 s each
+    };
+  };
+  systemd.user.timers.phone-pull = {
+    Unit.Description = "Look for the phone every minute";
+    Timer = {
+      OnCalendar = "minutely";
+      AccuracySec = "10s";
+    };
+    Install.WantedBy = [ "timers.target" ];
+  };
 
   # Login shell is bash (from pacman). Home Manager owns ~/.profile, ~/.bash_profile
   # and ~/.bashrc so the Nix and session variables reach X and i3.
