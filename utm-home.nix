@@ -197,6 +197,70 @@ in
     google-chrome            # the browser; nixpkgs builds it for aarch64-linux (Sami: Nix before pacman or AUR)
     xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
     alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
+    # VoiceMode, the Claude Code plugin (marketplace mbailey/voicemode, Sami
+    # 2026-09-30): its MCP server starts as `uv run voicemode` and converts audio
+    # with ffmpeg. Plugin, key and audio setup: the claudeVoiceMode activation below.
+    # Its dependencies webrtcvad and simpleaudio have no aarch64-linux wheels, so uv
+    # compiles them: uv and uvx are wrapped with a compiler, the audio headers and
+    # the libraries they load, as the VoiceMode flake does for its own uvx wrapper.
+    (let
+      audio = [ alsa-lib portaudio libpulseaudio ];
+      env = ''
+        export PATH="${gcc}/bin:${pkg-config}/bin:$PATH"
+        export CPATH="${lib.makeSearchPathOutput "dev" "include" audio}''${CPATH:+:$CPATH}"
+        export LIBRARY_PATH="${lib.makeLibraryPath audio}''${LIBRARY_PATH:+:$LIBRARY_PATH}"
+        export PKG_CONFIG_PATH="${lib.makeSearchPathOutput "dev" "lib/pkgconfig" audio}''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+        export LD_LIBRARY_PATH="${lib.makeLibraryPath (audio ++ [ stdenv.cc.cc.lib ])}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        # Nix's alsa-lib reads Arch's /etc/alsa/conf.d (pipewire-alsa's "default" PCM)
+        # but cannot find the plugin it names; without this PortAudio skips "default"
+        # and opens hw:0,0 past PipeWire, where playback at 24 kHz fails.
+        export ALSA_PLUGIN_DIR="''${ALSA_PLUGIN_DIR:-${pipewire}/lib/alsa-lib}"
+      '';
+      uvAudio = writeShellScriptBin "uv" "${env}exec ${uv}/bin/uv \"$@\"";
+    in symlinkJoin {
+      name = "uv-audio";
+      paths = [
+        uvAudio
+        (writeShellScriptBin "uvx" "${env}exec ${uv}/bin/uvx \"$@\"")
+        # The plugin's .mcp.json runs `uv run voicemode` from the session's
+        # directory, so it expects a `voicemode` command on PATH (upstream installs
+        # one with `uv tool install voice-mode`). This one runs the newest plugin
+        # copy in Claude Code's cache from its own uv.lock, so a plugin update needs
+        # nothing here. Python 3.13: that lock pins pydantic-core 2.33.2, which has
+        # no wheel for 3.14 (uv's default here) and whose PyO3 refuses to build for
+        # it; upstream's flake uses 3.12.
+        (writeShellScriptBin "voicemode" ''
+          set -eu
+          if [ -n "''${VOICEMODE_WRAPPED:-}" ]; then
+            echo "voicemode: the plugin's environment has no voicemode command" >&2; exit 1
+          fi
+          root=$(ls -d "$HOME"/.claude/plugins/cache/voicemode/voicemode/*/ 2>/dev/null | sort -V | tail -n 1)
+          if [ -z "$root" ]; then
+            echo "voicemode: the Claude Code plugin voicemode@voicemode is not installed" >&2; exit 1
+          fi
+          export VOICEMODE_WRAPPED=1 UV_PYTHON="''${UV_PYTHON:-3.13}"
+          exec ${uvAudio}/bin/uv run --project "$root" voicemode "$@"
+        '')
+      ];
+    })
+    ffmpeg
+    # VoiceMode reads OPENAI_API_KEY from ~/.voicemode/voicemode.env; the key lives in
+    # 1Password (op://Employee/OPENAI/password, as for gptel in myinit.org). Run once
+    # per new VM, or after rotating the key: it asks the Mac through the op bridge.
+    # It also pins speech-to-text to English: Sami always speaks English to Claude,
+    # with a Finnish accent, and auto-detection turned it into Finnish and Chinese
+    # (Sami, 2026-09-30).
+    (writeShellScriptBin "voicemode-key" ''
+      set -eu
+      f="$HOME/.voicemode/voicemode.env"
+      mkdir -p "$HOME/.voicemode"
+      touch "$f"; chmod 600 "$f"
+      key=$(op read -n op://Employee/OPENAI/password)
+      { grep -v -e '^OPENAI_API_KEY=' -e '^VOICEMODE_WHISPER_LANGUAGE=' "$f" || true
+        echo "OPENAI_API_KEY=$key"; echo "VOICEMODE_WHISPER_LANGUAGE=en"; } > "$f.tmp"
+      chmod 600 "$f.tmp"; mv "$f.tmp" "$f"
+      echo "OPENAI_API_KEY written to $f"
+    '')
     # OpenAI Codex CLI from nixos-unstable: nixos-26.05 had 0.146.0 (2026-07-29),
     # two months and 12 releases behind; unstable had 0.157.0 against upstream 0.158.0
     # (2026-09-28). Update: `nix flake update nixpkgs-unstable`, then switch. It
@@ -625,6 +689,12 @@ in
     fi
   '';
 
+  # VoiceMode soundfonts off (Sami, 2026-09-30): the plugin's hooks play a sound before
+  # and after every tool call, which came through the headphones as a stream of stray
+  # noises. The hook receiver exits early when this sentinel file exists; `voicemode
+  # soundfonts on` would delete it, and the next switch puts it back.
+  home.file.".voicemode/soundfonts-disabled".text = "";
+
   # The Mac's status line: context size and the 5-hour usage window. The script is a
   # Nix file; settings.json only points at it (same reason as the theme above).
   home.file.".claude/statusline.sh" = {
@@ -654,6 +724,46 @@ in
       mkdir -p "$HOME/.claude"
       [ -s "$f" ] || echo '{}' > "$f"
       ${pkgs.jq}/bin/jq '.remoteControlAtStartup = true | .isolatePeerMachines = true' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    fi
+  '';
+
+  # VoiceMode (Sami, 2026-09-30): the marketplace and the enabled plugin, the two keys
+  # `claude plugin marketplace add mbailey/voicemode` and `claude plugin install
+  # voicemode@voicemode` write. Claude Code clones the plugin on its next start.
+  # uv, voicemode, ffmpeg and voicemode-key are in home.packages; the key is a manual
+  # step (utm-arch PLAN.md): run voicemode-key once.
+  home.activation.claudeVoiceMode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.claude/settings.json"
+      mkdir -p "$HOME/.claude"
+      [ -s "$f" ] || echo '{}' > "$f"
+      ${pkgs.jq}/bin/jq '.extraKnownMarketplaces.voicemode = {"source": {"source": "github", "repo": "mbailey/voicemode"}} | .enabledPlugins["voicemode@voicemode"] = true' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    fi
+  '';
+
+  # The timeline (Sami, 2026-09-30): every prompt, tool call, stop and notification of
+  # every Claude Code session gets one line in ~/.claude/timeline.log, and each prompt
+  # tells the model the local time, so "when did that happen" has an answer. The
+  # script is a Nix file; the activation writes the hooks into settings.json (the
+  # same reason as the theme above). Only UserPromptSubmit runs synchronously, since
+  # its output is the time; the rest are async and add no delay.
+  home.file.".claude/claude-timeline.sh" = {
+    source = ./utm-arch/claude-timeline.sh;
+    executable = true;
+  };
+  home.activation.claudeTimeline = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.claude/settings.json"
+      mkdir -p "$HOME/.claude"
+      [ -s "$f" ] || echo '{}' > "$f"
+      ${pkgs.jq}/bin/jq '
+        def h(async): [{"hooks": [{"type": "command", "command": "~/.claude/claude-timeline.sh", "async": async}]}];
+        .hooks.UserPromptSubmit = h(false)
+        | .hooks.PreToolUse = h(true)
+        | .hooks.Stop = h(true)
+        | .hooks.SubagentStop = h(true)
+        | .hooks.Notification = h(true)
+        | .hooks.SessionStart = h(true)' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
     fi
   '';
 
