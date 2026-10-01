@@ -170,6 +170,12 @@ in
   # refile targets and org-gcal output all name ~/notes/..., which did not exist in the
   # VM, so the agenda and refiling had no task files.
   home.file."notes".source = config.lib.file.mkOutOfStoreSymlink "/home/sakalli/mac/notes";
+  # The assistant's Discord tools (tools/portal/discord*.cljs) default to Playwright's
+  # channel "chrome", which only looks in /opt/google/chrome; here Chrome is from Nix
+  # (2026-10-01, the VM's Discord portal login).
+  xdg.configFile."assistant/discord.edn".text = ''
+    {:chrome "${config.home.homeDirectory}/.nix-profile/bin/google-chrome-stable"}
+  '';
 
   programs.home-manager.enable = true;
 
