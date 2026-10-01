@@ -672,6 +672,14 @@ in
       through 1Password, and that prompt is his confirmation, so run the sudo command (a
       `darwin-rebuild switch`, say) and let it ask him. Report back by `SendMessage` either
       way, including when you stop. When you relay a request, say it is Sami's and quote him.
+    - **Voice conversations (VoiceMode) never end by themselves** (Sami, 2026-10-01). He
+      works hands free away from the laptop, and a stopped loop means walking back. Keep
+      calling `converse` until he clearly says to stop ("stop", "end the conversation").
+      Speech-to-text invents stock phrases on noise or silence ("Bye", "Bye. Bye.",
+      "Thank you", "Thanks for watching"), so such a reply alone, or any unclear one, is
+      not an answer and never a goodbye: say one short line and listen again. Do not ask
+      the same question twice in a row; if he does not answer, wait and listen. Pass
+      `listen_duration_min: 5`. Background: utm-arch `wiki/voicemode.md`.
   '';
 
   # Claude Code's theme for sakalli: the built-in "dark" (Sami's choice, 2026-09-30).
@@ -694,6 +702,32 @@ in
   # noises. The hook receiver exits early when this sentinel file exists; `voicemode
   # soundfonts on` would delete it, and the next switch puts it back.
   home.file.".voicemode/soundfonts-disabled".text = "";
+
+  # VoiceMode's non-secret settings in ~/.voicemode/voicemode.env (Sami, 2026-10-01:
+  # Whisper heard "Bye. Bye." and "Thank you." in clips where he said nothing, and the
+  # session ended). Evidence and sources: utm-arch wiki/voicemode.md. The file also
+  # holds OPENAI_API_KEY, written by voicemode-key; this step rewrites only the lines
+  # it owns and keeps the rest, so the key survives. VoiceMode reads the file when its
+  # MCP server starts: a running session needs /mcp reconnect to see a change.
+  # - MIN_RECORDING_DURATION 5: listen at least 5 s before silence may end a turn, the
+  #   floor for every converse call (it takes max(this, listen_duration_min)), so one
+  #   noise frame that wakes the voice detector no longer yields a 2.6 s clip.
+  # - STT_BASE_URLS: OpenAI only. The default tries a local Whisper on 127.0.0.1:2022
+  #   first, which this VM does not run, and then logs every reply as "whisper-local".
+  # - WHISPER_LANGUAGE en: Sami speaks English (voicemode-key writes it too).
+  home.activation.voiceModeEnv = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.voicemode/voicemode.env"
+      mkdir -p "$HOME/.voicemode"
+      touch "$f"; chmod 600 "$f"
+      { grep -v -e '^VOICEMODE_MIN_RECORDING_DURATION=' -e '^VOICEMODE_STT_BASE_URLS=' \
+                -e '^VOICEMODE_WHISPER_LANGUAGE=' "$f" || true
+        echo "VOICEMODE_MIN_RECORDING_DURATION=5"
+        echo "VOICEMODE_STT_BASE_URLS=https://api.openai.com/v1"
+        echo "VOICEMODE_WHISPER_LANGUAGE=en"; } > "$f.tmp"
+      chmod 600 "$f.tmp"; mv "$f.tmp" "$f"
+    fi
+  '';
 
   # The Mac's status line: context size and the 5-hour usage window. The script is a
   # Nix file; settings.json only points at it (same reason as the theme above).
