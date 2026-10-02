@@ -21,6 +21,12 @@ esac
 what=$(printf '%s' "$what" | tr '\n\t\r' '   ' | cut -c1-140)
 printf '%s %-8s %-12s %-16s %s\n' "$ts" "${sid:--}" "${cwd:--}" "${ev:--}" "$what" >> "$HOME/.claude/timeline.log"
 if [ "$ev" = UserPromptSubmit ]; then
-  printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"Local time now: %s"}}\n' "$(date '+%a %Y-%m-%d %H:%M %Z')"
+  # Also the latest Claude usage line from the claude-window monitor (assistant repo,
+  # bin/claude-window.clj), without its ccusage tail, so the model sees the 5 h and weekly
+  # limits with every prompt (Sami, 2026-10-02: "a script that sends the latest here").
+  ctx="Local time now: $(date '+%a %Y-%m-%d %H:%M %Z')"
+  usage=$(tail -n 1 "$HOME/.local/state/claude-window.log" 2>/dev/null | sed 's/  *| *ccusage.*//')
+  [ -n "$usage" ] && ctx="$ctx. Claude usage at $usage"
+  jq -cn --arg c "$ctx" '{hookSpecificOutput:{hookEventName:"UserPromptSubmit",additionalContext:$c}}'
 fi
 exit 0
