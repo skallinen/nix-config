@@ -853,6 +853,27 @@ in
   # ~/assistant/state/phone on Margaret. No udev rule: systemd's 70-uaccess already
   # gives the seat user an ACL on the phone's USB node. Away from home it skips, since
   # the away route to Margaret goes through the Mac; `pull` by hand works anywhere.
+  # The Claude usage monitor (assistant repo bin/claude-window.clj): one line every 15
+  # minutes to ~/.local/state/claude-window.log, which the claude-timeline hook hands to
+  # the model with every prompt (Sami, 2026-10-02). It ran as a transient unit that died
+  # with every VM reboot and after 16 h; now it starts with the session and restarts.
+  systemd.user.services.claude-window = {
+    Unit = {
+      Description = "Claude usage window, one line every 15 minutes";
+      ConditionPathExists = "%h/mac/common/projects/assistant/bin/claude-window.clj";
+    };
+    Service = {
+      WorkingDirectory = "%h/mac/common/projects/assistant";
+      Environment = "PATH=%h/.nix-profile/bin:%h/.local/bin:/usr/bin";
+      ExecStart = "%h/.nix-profile/bin/bb bin/claude-window.clj --loop 15";
+      StandardOutput = "append:%h/.local/state/claude-window.log";
+      StandardError = "append:%h/.local/state/claude-window.log";
+      Restart = "always";
+      RestartSec = "60";
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
+
   systemd.user.services.phone-pull = {
     Unit = {
       Description = "Pull SMS and calls from the phone into the archive on Margaret";
