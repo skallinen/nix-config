@@ -207,6 +207,7 @@ in
     xkblayout-state          # the Emacs mode line shows the layout (Linux branch)
     xsetroot                 # i3 paints the linen desktop with it
     jq                       # utm-arch build/agent-desktop.sh edits agent's settings.json with it
+    rsync                    # assistant deploy/push.sh copies code to Margaret with it (2026-10-02)
     libnotify                # notify-send, for scripts and the agent's notifications
     xclip                    # the X clipboard from a shell; spice-vdagent (below) syncs it with the Mac's
     xsel                     # the same, for tools that look for xsel rather than xclip
