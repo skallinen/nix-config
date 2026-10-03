@@ -886,14 +886,11 @@ in
       TimeoutStartSec = "30min";   # a first pull reads MMS addresses at about 1.2 s each
     };
   };
-  systemd.user.timers.phone-pull = {
-    Unit.Description = "Look for the phone every minute";
-    Timer = {
-      OnCalendar = "minutely";
-      AccuracySec = "10s";
-    };
-    Install.WantedBy = [ "timers.target" ];
-  };
+  # No timer any more (Sami, 2026-10-03): the minutely adb in the VM needed UTM to pass
+  # the Pixel into the VM, and a phone dropping off USB mid-transfer made QEMU abort
+  # (usbredir assert) at 10:48 and 11:49 that day, taking the VM down (utm-arch
+  # wiki/vm-crashes-2026-10-03.md). adb now runs on the Mac only and USB sharing is off
+  # for the VM; phone-pull is to move to the Mac. The service stays for a manual run.
 
   # Login shell is bash (from pacman). Home Manager owns ~/.profile, ~/.bash_profile
   # and ~/.bashrc so the Nix and session variables reach X and i3.
