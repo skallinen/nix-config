@@ -4,7 +4,19 @@
 # through the Mac's Karabiner rule, so no caps:super here.
 setxkbmap -layout us,fi -option grp:shifts_toggle
 xrdb -merge "$HOME/.Xresources" 2>/dev/null
-# User services (emacs.service) need the display to open frames.
+# The systemd user manager. UID 501 (D11) is below 1000, so systemd 258 and later
+# rate sakalli a system user and give this autologin session the class user-light,
+# which does not start user@501.service: without this, the manager only came up with
+# the first ssh login, never saw DISPLAY, and dunst.service died with "Cannot open
+# X11 display" while a second dunst ran on a dbus-launch bus (2026-10-03). Linger
+# starts the manager from boot on: utm-arch build/install.sh writes
+# /var/lib/systemd/linger/sakalli (root only, the VM has no polkit). Wait for its bus.
+i=0
+while [ ! -S "$XDG_RUNTIME_DIR/bus" ] && [ "$i" -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
+# One session bus for X clients and user services, so D-Bus starts dunst.service
+# there and no dbus-launch bus (with its own dunst) appears.
+[ -S "$XDG_RUNTIME_DIR/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+# User services (emacs.service, dunst.service) need the display to open windows.
 systemctl --user import-environment DISPLAY XAUTHORITY
 # Session half of the SPICE agent: clipboard and display resize. The patched Nix
 # build from utm-home.nix, not /usr/bin (see the note there).

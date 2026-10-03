@@ -78,8 +78,10 @@ theme only after `agent-desktop.sh` runs again.
   pty of the Claude Code process (see `claude-notify`).
 - A `home-manager switch` restarts `dunst.service`, and it dies with "Cannot open X11
   display" when the user systemd environment has lost `DISPLAY` (seen 2026-09-30 at
-  10:10, and in an earlier `hm-switch.log`; why it goes missing is not known, since
-  `~/.xinitrc` imports it at login). Then no notifications show. Fix:
+  10:10, 2026-10-03). Cause: UID 501 makes the tty1 autologin session `user-light`
+  (systemd 258+), so no user manager runs when `~/.xinitrc` imports `DISPLAY`; linger
+  fixes it (`build/install.sh`, utm-arch `wiki/utm-theme.md`). Then no notifications
+  show. Live fix:
   `DISPLAY=:0 XAUTHORITY=~/.Xauthority systemctl --user import-environment DISPLAY XAUTHORITY`,
   `systemctl --user reset-failed dunst`, `systemctl --user start dunst`.
 - `screendump` in rofi is the console tool from `kbd` (text of a virtual console), not

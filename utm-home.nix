@@ -469,7 +469,8 @@ in
   # square ink frame, rust only for critical ones, which also stay until closed.
   # Sizes are Omarchy's at 1x; `scale = 2` doubles them for the VM's 2x.
   # D-Bus starts dunst on the first notification (its service file is in
-  # ~/.local/share/dbus-1/services); i3 also starts it with the session.
+  # ~/.local/share/dbus-1/services); i3 also starts it with the session. Both need
+  # the user manager to hold DISPLAY, which ~/.xinitrc sees to (linger, utm-arch/xinitrc).
   # Keys (i3-config): Super+N closes the top one, Super+Shift+N toggles do not
   # disturb, the menu (Super+Shift+D) has the history.
   services.dunst = {
