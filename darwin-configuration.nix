@@ -505,6 +505,24 @@
   
   };
   
+  # --- walk-and-talk: the phone reaches the VM's walk server at home ---
+  # The utm-arch VM sits behind UTM "Shared" NAT (192.168.64.7) with no port forwards, so
+  # the Pixel on the home Wi-Fi cannot reach it. This forwards the Mac's port 8790 to the
+  # walk server in the VM. walk-and-talk docs/plan/02-session-link/decisions.md D9;
+  # Sami's yes 2026-10-03 11:17. The macOS firewall may ask once to allow socat.
+  launchd.user.agents.walk-forward = {
+    serviceConfig = {
+      ProgramArguments = [
+        "${pkgs.socat}/bin/socat"
+        "TCP-LISTEN:8790,fork,reuseaddr"
+        "TCP:192.168.64.7:8790"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardErrorPath = "/tmp/walk-forward.log";
+    };
+  };
+
   # --- Fonts ---
   fonts.packages = with pkgs; [
     nerd-fonts.roboto-mono
