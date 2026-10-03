@@ -874,6 +874,44 @@ in
     Install.WantedBy = [ "default.target" ];
   };
 
+  # walk-and-talk away from home (Sami, 2026-10-03 12:09, "yes, build it that way";
+  # walk-and-talk docs/plan/03-away-from-home/): the VM holds a reverse tunnel to
+  # assistant-vault, vault 127.0.0.1:8790 -> the walk server on 192.168.64.7:8790, and the
+  # phone reaches it with its own forward-only key. Margaret's assistant-tunnel is the
+  # pattern (assistant wiki/assistant-vault.md): ExitOnForwardFailure turns a port still
+  # held by an orphaned session into an exit, Restart retries, and the vault's
+  # ClientAlive 30x3 reaps the orphan within about 90 s. Its own key, made here if
+  # missing, never the 1Password agent (that needs Touch ID on the Mac, and a tunnel must
+  # come back unattended). -F none keeps ~/.ssh/config's ControlMaster out of it. The
+  # vault's host key is pinned below. The vault side (the `walk` account) is
+  # docs/plan/03-away-from-home/vault-walk-user.sh, applied by Sami; until then this
+  # unit fails to log in and retries every 30 s.
+  home.activation.walkVaultKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e "$HOME/.ssh/walk_vault_ed25519" ]; then
+      run ${pkgs.openssh}/bin/ssh-keygen -q -t ed25519 -N "" -C walk-vm-tunnel \
+        -f "$HOME/.ssh/walk_vault_ed25519"
+      echo "new key ~/.ssh/walk_vault_ed25519: its .pub goes into vault-walk-user.sh" >&2
+    fi
+  '';
+  systemd.user.services.walk-vault-tunnel =
+    let
+      vaultKnownHosts = pkgs.writeText "walk-vault-known-hosts" ''
+        2.29.9.207 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF8b74PkRSTd4iSQYf0u1O5nGJjNx72y18nkbJmQgeN0
+      '';
+    in {
+    Unit = {
+      Description = "walk-and-talk: reverse tunnel, assistant-vault 127.0.0.1:8790 to the walk server";
+      ConditionPathExists = "%h/.ssh/walk_vault_ed25519";
+      StartLimitIntervalSec = 0;
+    };
+    Service = {
+      ExecStart = "${pkgs.openssh}/bin/ssh -NT -F none -i %h/.ssh/walk_vault_ed25519 -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${vaultKnownHosts} -o ConnectTimeout=15 -R 127.0.0.1:8790:192.168.64.7:8790 walk@2.29.9.207";
+      Restart = "always";
+      RestartSec = "30";
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
+
   systemd.user.services.phone-pull = {
     Unit = {
       Description = "Pull SMS and calls from the phone into the archive on Margaret";
