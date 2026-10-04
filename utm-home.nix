@@ -266,6 +266,34 @@ in
       ];
     })
     ffmpeg
+    # A short-lived secrets stash for when Sami is away from the Mac (2026-10-04, the
+    # stopgap before a 1Password service account): `secret-stash`, run while he is at the
+    # Mac, reads the listed items through the op bridge (one fingerprint) into
+    # $XDG_RUNTIME_DIR/secrets, which is in memory and gone at reboot. Jobs read a value
+    # with `secret NAME` inside a command substitution; neither tool prints a value.
+    (writeShellScriptBin "secret-stash" ''
+      set -eu
+      d="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/secrets"
+      umask 077; mkdir -p "$d"
+      while read -r name ref; do
+        [ -n "$name" ] || continue
+        if op read -n "$ref" > "$d/$name.tmp" 2>/dev/null && [ -s "$d/$name.tmp" ]; then
+          mv "$d/$name.tmp" "$d/$name"; echo "stashed $name"
+        else
+          rm -f "$d/$name.tmp"; echo "FAILED $name ($ref)" >&2
+        fi
+      done <<'LIST'
+      anthropic op://Employee/Anthropic/password
+      openai op://Employee/OPENAI/password
+      severa op://Employee/Severa API key/password
+      LIST
+    '')
+    (writeShellScriptBin "secret" ''
+      set -eu
+      f="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/secrets/''${1:?usage: secret NAME}"
+      [ -s "$f" ] || { echo "secret $1 is not stashed (run secret-stash at the Mac)" >&2; exit 1; }
+      cat "$f"
+    '')
     # VoiceMode reads OPENAI_API_KEY from ~/.voicemode/voicemode.env; the key lives in
     # 1Password (op://Employee/OPENAI/password, as for gptel in myinit.org). Run once
     # per new VM, or after rotating the key: it asks the Mac through the op bridge.
