@@ -309,6 +309,9 @@
       #   curl -fsSLO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
       #   security import AppleWWDRCAG3.cer -k ~/Library/Keychains/login.keychain-db
       # The phone side (pair, Developer Mode, trust the developer profile) is manual.
+      # Apple Developer app (Mac App Store id 640199958), installed by hand 2026-10-04 for the
+      # 1-bit-wonder Oy enrollment: not declared, for the same mas reason as Xcode (and mas
+      # is not installed). `open "macappstore://apps.apple.com/app/apple-developer/id640199958"`.
     };
 
     extraConfig = ''
