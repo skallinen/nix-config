@@ -363,6 +363,13 @@
       _1password-cli  # moved from Homebrew cask
       emacs-lsp-booster  # LSP I/O proxy for faster TypeScript
       vscode-js-debug    # DAP debug adapter for dape
+      # walk-go / walk-home: the Air rides closed in a bag on a walk-and-talk walk,
+      # online through the phone hotspot (walk-and-talk wiki/walk-server.md,
+      # "Laptop in a bag"). Sources in scripts/; walk-lib.sh holds the shared helpers.
+      (writeShellScriptBin "walk-go" (builtins.replaceStrings [ "@lib@" ]
+        [ "${./scripts/walk-lib.sh}" ] (builtins.readFile ./scripts/walk-go.sh)))
+      (writeShellScriptBin "walk-home" (builtins.replaceStrings [ "@lib@" ]
+        [ "${./scripts/walk-lib.sh}" ] (builtins.readFile ./scripts/walk-home.sh)))
     ];
 
     # Config Files
