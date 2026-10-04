@@ -959,9 +959,14 @@ in
   # until it has been idle for ControlPersist (seen 2026-09-27: a watcher polling the
   # Mac every minute kept switching spaces).
   programs.ssh.extraConfig = ''
+    # The VM's own key for the Mac, a plain file without a passphrase like
+    # margaret_vm_ed25519, made and authorised by utm-arch build/mac-key.sh (Sami,
+    # 2026-10-04: no fingerprint prompts while he is away). Never in Nix.
     Host mac 192.168.64.1
       HostName 192.168.64.1
       User samikallinen
+      IdentityFile ~/.ssh/mac_vm_ed25519
+      IdentitiesOnly yes
       ControlMaster auto
       ControlPath ~/.ssh/cm-%C
       ControlPersist 4h
@@ -993,6 +998,15 @@ in
     Match originalhost margaret !exec "timeout 2 bash -c 'exec 3<>/dev/tcp/192.168.10.44/22' 2>/dev/null"
       ProxyCommand ssh mac 'ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/hetzner_rendezvous_ed25519 -W 127.0.0.1:2222 root@2.29.9.207'
   '';
+  # GitHub without 1Password (Sami, 2026-10-04: no fingerprint prompts while he is away
+  # from the Mac). Every github.com remote, ssh or https, goes over HTTPS with the token
+  # `gh auth login` keeps in ~/.config/gh/hosts.yml (scopes gist, read:org, repo; a push
+  # that touches .github/workflows would need the workflow scope too). VM only: the Mac
+  # keeps its ssh remotes through 1Password.
+  programs.git.settings = {
+    credential."https://github.com".helper = [ "" "!${pkgs.gh}/bin/gh auth git-credential" ];
+    url."https://github.com/".insteadOf = [ "git@github.com:" "ssh://git@github.com/" ];
+  };
   home.file.".ssh/known_hosts_github".text = ''
     github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
   '';
