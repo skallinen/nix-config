@@ -302,6 +302,13 @@
       #   sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
       #   sudo xcodebuild -runFirstLaunch
       # `xcode-select -p` currently still points at the nix apple-sdk.
+      # iPhone signing (2026-10-04): after adding the Apple ID in Xcode > Settings >
+      # Accounts and making an "Apple Development" certificate, `security find-identity
+      # -v -p codesigning` said 0 valid: the keychain only had the expired first WWDR
+      # intermediate. Import the G3 one into the login keychain (no sudo):
+      #   curl -fsSLO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+      #   security import AppleWWDRCAG3.cer -k ~/Library/Keychains/login.keychain-db
+      # The phone side (pair, Developer Mode, trust the developer profile) is manual.
     };
 
     extraConfig = ''
