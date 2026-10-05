@@ -959,6 +959,34 @@ in
   # wiki/vm-crashes-2026-10-03.md). adb now runs on the Mac only and USB sharing is off
   # for the VM; phone-pull is to move to the Mac. The service stays for a manual run.
 
+  # The focus tree (assistant tools/workday/focus.clj): every hour it appends the
+  # missing days to state/focus.sqlite and rewrites out/all/ and the newest eight days
+  # (Sami, 2026-10-05). It runs here because it reads Claude transcripts from both
+  # ~/.claude and the Mac share ~/mac/.claude.
+  systemd.user.services.focus-tree = {
+    Unit = {
+      Description = "Focus tree: append new days and regenerate the pages";
+      ConditionPathExists = "%h/mac/common/projects/assistant/tools/workday/focus.clj";
+    };
+    Service = {
+      Type = "oneshot";
+      Environment = "PATH=%h/.nix-profile/bin:/usr/bin";
+      WorkingDirectory = "%h/mac/common/projects/assistant";
+      ExecStart = "/usr/bin/sh -c 'bb tools/workday/focus.clj --all && bb tools/workday/focus.clj --days 8'";
+      Nice = 10;
+      TimeoutStartSec = "20min";
+    };
+  };
+  systemd.user.timers.focus-tree = {
+    Unit.Description = "Focus tree, hourly";
+    Timer = {
+      OnCalendar = "hourly";
+      Persistent = true;
+      RandomizedDelaySec = "2min";
+    };
+    Install.WantedBy = [ "timers.target" ];
+  };
+
   # Login shell is bash (from pacman). Home Manager owns ~/.profile, ~/.bash_profile
   # and ~/.bashrc so the Nix and session variables reach X and i3.
   programs.bash = {
