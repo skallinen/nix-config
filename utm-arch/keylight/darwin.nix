@@ -1,8 +1,8 @@
 # keylight: a 14 px square in the top left corner of every screen that shows where the
 # keystrokes go (utm-arch wiki/utm-input-and-keyboard.md, "Keylight"). Green: UTM is
-# frontmost, keys go to the VM. Blue: another Mac app is frontmost. Red, with a sound
-# and a notification: the ErgoDox EZ is not on the Mac's USB (handed to the VM, or the
-# hub dropped it). Imported only for the Air (flake.nix), where the VM runs.
+# frontmost and has captured input, keys go to the VM. Blue: anything else, keys go to
+# the Mac. The ErgoDox EZ leaving or returning gives a notification (and a sound when it
+# leaves), no colour. Imported only for the Air (flake.nix), where the VM runs.
 #
 # Needs no permission grant: it reads the IORegistry and NSWorkspace only.
 # Off switch: `launchctl bootout gui/$(id -u)/org.nixos.keylight` until the next login

@@ -2,10 +2,14 @@
 // keystrokes go. utm-arch wiki/utm-input-and-keyboard.md, "Keylight".
 //
 //   green  UTM is the frontmost app AND has captured input: keys go to the VM
-//   blue   another Mac app is frontmost, or UTM is but capture is released
-//          (Command+Option): keys go to the Mac
-//   red    the ErgoDox EZ (3297:4975) has no HID device on the Mac: it was handed to the
-//          VM over USB, or the hub dropped it. A notification and a sound on the change.
+//   blue   anything else: another Mac app is frontmost, or UTM is but capture is
+//          released (Command+Option); keys go to the Mac
+//
+// The colour does not depend on which keyboard is used. When the ErgoDox EZ (3297:4975)
+// loses its HID device on the Mac (hub unplugged or dropped, or handed to the VM) there
+// is a notification and the Basso sound, and a notification when it returns; no colour.
+// Red was dropped 2026-10-06: it hid the VM/Mac signal for an hour with the hub
+// unplugged, and with MaximumUsbShare 0 the VM cannot take the keyboard.
 //
 // Click-through, never key, never activates; on all Spaces including UTM's full screen
 // Space. It reads only the IORegistry (no device is opened), NSWorkspace and the global
@@ -36,13 +40,12 @@ let keyboardProduct = 0x4975
 let side: CGFloat = 14
 let inset: CGFloat = 6   // clear of the rounded display corner
 
-enum State: String { case vm, mac, gone }
+enum State: String { case vm, mac }
 
 func colour(_ s: State) -> NSColor {
   switch s {
   case .vm:   return NSColor(srgbRed: 0.13, green: 0.80, blue: 0.27, alpha: 1)
   case .mac:  return NSColor(srgbRed: 0.20, green: 0.45, blue: 1.00, alpha: 1)
-  case .gone: return NSColor(srgbRed: 1.00, green: 0.15, blue: 0.15, alpha: 1)
   }
 }
 
@@ -85,6 +88,7 @@ final class Light {
       if c != self.captured { self.captured = c; self.update() }
     }
     watchKeyboard()
+    keyboardPresent = keyboardCount > 0
     buildWindows()
     update(initial: true)
   }
@@ -114,7 +118,7 @@ final class Light {
   func drain(_ it: io_iterator_t, _ delta: Int, quiet: Bool = false) {
     var s = IOIteratorNext(it)
     while s != 0 { keyboardCount = max(0, keyboardCount + delta); IOObjectRelease(s); s = IOIteratorNext(it) }
-    if !quiet { update() }
+    if !quiet { keyboardChanged() }
   }
 
   func buildWindows() {
@@ -146,19 +150,27 @@ final class Light {
     for w in windows { w.contentView?.layer?.backgroundColor = colour(state).cgColor }
   }
 
+  var keyboardPresent = true
+
+  func keyboardChanged() {
+    let present = keyboardCount > 0
+    if present == keyboardPresent { return }
+    keyboardPresent = present
+    log("ErgoDox \(present ? "back" : "gone") (HID devices: \(keyboardCount))")
+    if present {
+      notify("ErgoDox is back on the Mac", "Keys from it reach macOS again.")
+    } else {
+      NSSound(named: "Basso")?.play()
+      notify("ErgoDox is not on the Mac", "The hub was unplugged or dropped it, or the VM took it. The built-in keyboard still works.")
+    }
+  }
+
   func update(initial: Bool = false) {
-    let next: State = keyboardCount == 0 ? .gone : (frontIsUTM && captured ? .vm : .mac)
+    let next: State = frontIsUTM && captured ? .vm : .mac
     if next == state && !initial { return }
-    let prev = state
     state = next
     paint()
     log("\(next.rawValue) (front UTM: \(frontIsUTM), captured: \(captured), ErgoDox HID devices: \(keyboardCount))")
-    if next == .gone && (prev != .gone || initial) {
-      NSSound(named: "Basso")?.play()
-      notify("ErgoDox is not on the Mac", "It was handed to the VM or the hub dropped it. Built-in keyboard still works.")
-    } else if prev == .gone && next != .gone && !initial {
-      notify("ErgoDox is back on the Mac", "Keys from it reach macOS again.")
-    }
   }
 }
 
