@@ -34,6 +34,11 @@
   system.defaults.CustomUserPreferences."com.utmapp.UTM".NoFullscreenCursorCaptureAlert = true;
   # No UTM icon in the menu bar.
   system.defaults.CustomUserPreferences."com.utmapp.UTM".ShowMenuIcon = false;
+  # No "connect this USB device to the VM?" sheet when a device arrives. On 2026-10-04
+  # a click on it handed the ErgoDox to the VM and locked the Mac out (utm-arch
+  # wiki/utm-input-and-keyboard.md, third lock). Goes with MaximumUsbShare 0 in the
+  # VM's config.plist (build/vm-after.bb usb-off).
+  system.defaults.CustomUserPreferences."com.utmapp.UTM".NoUsbPrompt = true;
 
   # Spotlight & Input Source Shortcuts (Cmd+Space / Cmd+D)
   # Note: postUserActivation removed in 25.11; all activation now runs as root
