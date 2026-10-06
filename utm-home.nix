@@ -830,6 +830,21 @@ in
     fi
   '';
 
+  # CodeScene Code Health (Sami, 2026-10-06): the marketplace and the enabled plugin,
+  # as `claude plugin marketplace add codescene-oss/codescene-mcp-server` and
+  # `claude plugin install codescene@codescene` write them. The plugin's MCP server
+  # runs `npx -y @codescene/codehealth-mcp` (nodejs is in home.packages) and reads
+  # CS_ACCESS_TOKEN from the environment; getting the token is a manual step
+  # (utm-arch PLAN.md).
+  home.activation.claudeCodeScene = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      f="$HOME/.claude/settings.json"
+      mkdir -p "$HOME/.claude"
+      [ -s "$f" ] || echo '{}' > "$f"
+      ${pkgs.jq}/bin/jq '.extraKnownMarketplaces.codescene = {"source": {"source": "github", "repo": "codescene-oss/codescene-mcp-server"}} | .enabledPlugins["codescene@codescene"] = true' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    fi
+  '';
+
   # The timeline (Sami, 2026-09-30): every prompt, tool call, stop and notification of
   # every Claude Code session gets one line in ~/.claude/timeline.log, and each prompt
   # tells the model the local time, so "when did that happen" has an answer. The
