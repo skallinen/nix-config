@@ -45,9 +45,11 @@
     darwinConfigurations = {
       # The Air also runs the utm-arch VM, so it carries the macbridge (utm-arch
       # wiki/macbridge.md): Touch ID and 1Password for the VM. claude/darwin.nix links
-      # ~/.claude/CLAUDE.md to claude/CLAUDE.md in this repo (utm-arch D26).
+      # ~/.claude/CLAUDE.md to claude/CLAUDE.md in this repo (utm-arch D26). keylight is
+      # the corner square that shows where the keys go (VM, Mac, or ErgoDox gone).
       "Samis-MacBook-Air" = mkMac "Samis-MacBook-Air" {
-        imports = [ ./darwin-configuration.nix ./utm-arch/macbridge/darwin.nix ./claude/darwin.nix ];
+        imports = [ ./darwin-configuration.nix ./utm-arch/macbridge/darwin.nix ./claude/darwin.nix
+                    ./utm-arch/keylight/darwin.nix ];
       };
 
       # Mac16,7 / M4 Pro. This output was called -Air until 2026-09-01: a Migration
