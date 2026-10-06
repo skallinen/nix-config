@@ -842,6 +842,13 @@ in
       mkdir -p "$HOME/.claude"
       [ -s "$f" ] || echo '{}' > "$f"
       ${pkgs.jq}/bin/jq '.extraKnownMarketplaces.codescene = {"source": {"source": "github", "repo": "codescene-oss/codescene-mcp-server"}} | .enabledPlugins["codescene@codescene"] = true' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+      # The token (trial started 2026-10-06) lives in ~/.config/codescene/token, mode 600,
+      # never in this repo. Claude Code passes settings.json's env to MCP servers.
+      t="$HOME/.config/codescene/token"
+      if [ -s "$t" ]; then
+        ${pkgs.jq}/bin/jq --rawfile tok "$t" '.env.CS_ACCESS_TOKEN = ($tok | rtrimstr("\n"))' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+        chmod 600 "$f"
+      fi
     fi
   '';
 
