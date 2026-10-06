@@ -1,19 +1,34 @@
 // keylight: a small square in the top left corner of every screen that says where the
 // keystrokes go. utm-arch wiki/utm-input-and-keyboard.md, "Keylight".
 //
-//   green  UTM is the frontmost app: keys go to the VM (WindowFocusAutoCapture is on)
-//   blue   another Mac app is frontmost: keys go to the Mac
+//   green  UTM is the frontmost app AND has captured input: keys go to the VM
+//   blue   another Mac app is frontmost, or UTM is but capture is released
+//          (Command+Option): keys go to the Mac
 //   red    the ErgoDox EZ (3297:4975) has no HID device on the Mac: it was handed to the
 //          VM over USB, or the hub dropped it. A notification and a sound on the change.
 //
 // Click-through, never key, never activates; on all Spaces including UTM's full screen
-// Space. It reads only the IORegistry (no device is opened) and NSWorkspace, so it needs
-// no Accessibility, Input Monitoring or Screen Recording permission, and it runs on the
-// Mac, so a frozen VM does not stop it. Run by launchd (nix-config
-// utm-arch/keylight/darwin.nix); state changes are printed to stdout for the log.
+// Space. It reads only the IORegistry (no device is opened), NSWorkspace and the global
+// hot key mode, so it needs no Accessibility, Input Monitoring or Screen Recording
+// permission, and it runs on the Mac, so a frozen VM does not stop it. Run by launchd
+// (nix-config utm-arch/keylight/darwin.nix); state changes are printed for the log.
 
 import AppKit
 import IOKit
+
+// Capture signal. UTM 4.7.5 VMMetalView.captureMouse() calls
+// CGSSetGlobalHotKeyOperatingMode(cid, .disable) and releaseMouse() sets .enable again;
+// the mode is global in the WindowServer, so any process reads it (0 enabled, 1 disabled).
+// No notification exists, so it is polled. Window subtitle ("Press ... to release
+// cursor") would need Screen Recording; cursor visibility reads only our own process.
+@_silgen_name("CGSMainConnectionID") func CGSMainConnectionID() -> Int32
+@_silgen_name("CGSGetGlobalHotKeyOperatingMode")
+func CGSGetGlobalHotKeyOperatingMode(_ cid: Int32, _ mode: UnsafeMutablePointer<UInt32>) -> Int32
+
+func hotKeysDisabled() -> Bool {
+  var mode: UInt32 = 0
+  return CGSGetGlobalHotKeyOperatingMode(CGSMainConnectionID(), &mode) == 0 && mode != 0
+}
 
 let utmBundle = "com.utmapp.UTM"
 let keyboardVendor = 0x3297
@@ -48,6 +63,7 @@ final class Light {
   var windows: [NSWindow] = []
   var state: State = .mac
   var frontIsUTM = false
+  var captured = false
   var keyboardCount = 0
   var notifyPorts: IONotificationPortRef?
   var iterators: [io_iterator_t] = []
@@ -62,6 +78,11 @@ final class Light {
     }
     NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { _ in
       self.buildWindows()
+    }
+    captured = hotKeysDisabled()
+    Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
+      let c = hotKeysDisabled()
+      if c != self.captured { self.captured = c; self.update() }
     }
     watchKeyboard()
     buildWindows()
@@ -126,12 +147,12 @@ final class Light {
   }
 
   func update(initial: Bool = false) {
-    let next: State = keyboardCount == 0 ? .gone : (frontIsUTM ? .vm : .mac)
+    let next: State = keyboardCount == 0 ? .gone : (frontIsUTM && captured ? .vm : .mac)
     if next == state && !initial { return }
     let prev = state
     state = next
     paint()
-    log("\(next.rawValue) (front UTM: \(frontIsUTM), ErgoDox HID devices: \(keyboardCount))")
+    log("\(next.rawValue) (front UTM: \(frontIsUTM), captured: \(captured), ErgoDox HID devices: \(keyboardCount))")
     if next == .gone && (prev != .gone || initial) {
       NSSound(named: "Basso")?.play()
       notify("ErgoDox is not on the Mac", "It was handed to the VM or the hub dropped it. Built-in keyboard still works.")
