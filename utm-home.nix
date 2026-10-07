@@ -266,6 +266,7 @@ in
       ];
     })
     ffmpeg
+    unzip                    # the CodeScene MCP (npx @codescene/codehealth-mcp) unpacks its 81 MB binary with unzip on first start; without it: "spawnSync unzip ENOENT" (2026-10-07)
     # A short-lived secrets stash for when Sami is away from the Mac (2026-10-04, the
     # stopgap before a 1Password service account): `secret-stash`, run while he is at the
     # Mac, reads the listed items through the op bridge (one fingerprint) into
