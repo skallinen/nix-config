@@ -909,10 +909,12 @@ in
   # minutes to ~/.local/state/claude-window.log, which the claude-timeline hook hands to
   # the model with every prompt (Sami, 2026-10-02). It ran as a transient unit that died
   # with every VM reboot and after 16 h; now it starts with the session and restarts.
+  # No ConditionPathExists: at boot ~/mac is not mounted yet, the condition skipped the
+  # unit and nothing retried it (dead from 09:07 to 15:44 on 7.10.2026). Without it, bb
+  # fails until the share is there and Restart retries every minute.
   systemd.user.services.claude-window = {
     Unit = {
       Description = "Claude usage window, one line every 15 minutes";
-      ConditionPathExists = "%h/mac/common/projects/assistant/bin/claude-window.clj";
     };
     Service = {
       WorkingDirectory = "%h/mac/common/projects/assistant";
