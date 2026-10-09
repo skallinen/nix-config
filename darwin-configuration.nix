@@ -368,6 +368,7 @@
       _1password-cli  # moved from Homebrew cask
       emacs-lsp-booster  # LSP I/O proxy for faster TypeScript
       vscode-js-debug    # DAP debug adapter for dape
+      android-tools      # adb: the Pixel is read through the host Mac, not passed to the VM (Sami 9.10.2026)
       # walk-go / walk-home: the Air rides closed in a bag on a walk-and-talk walk,
       # online through the phone hotspot (walk-and-talk wiki/walk-server.md,
       # "Laptop in a bag"). Sources in scripts/; walk-lib.sh holds the shared helpers.
