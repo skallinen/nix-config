@@ -10,8 +10,13 @@
 # device with Google's vendor id (0x18D1 = 6353) appears, also once at load if the
 # phone is already attached. Vendor only, not the product id: the Pixel's product id
 # changes with its USB mode (charging, file transfer, debugging), and the VM side checks
-# `adb devices` anyway. The job takes the event (usb-event.swift says why it must), then
-# asks the VM to start phone-pull-connect.service (utm-home.nix) and returns; the pull
+# `adb devices` anyway. The vendor id goes inside IOPropertyMatch: as a top level key
+# next to IOProviderClass it never matched (9.10.2026: no run at load, none at a replug),
+# because IOUSBHostDevice applies the USB rules there, where a vendor id counts only
+# together with a product id or a class; IOPropertyMatch is plain property matching,
+# and with it the job ran at load for the attached Pixel. The job's program is
+# usb-event.swift, which takes the event (it says why it must be the job itself) and
+# then runs the script below, which asks the VM to start phone-pull-connect.service (utm-home.nix) and returns; the pull
 # runs there, waits up to 60 s for adb to see the phone, and pulls without the hourly
 # throttle. If the VM is off or asleep the ssh fails and is logged; the VM's 15 minute
 # phone-pull.timer catches up later.
@@ -35,7 +40,6 @@ let
   '';
   job = pkgs.writeShellScript "phone-connect" ''
     echo "$(/bin/date '+%F %T') start"
-    ${usb-event}/bin/phone-usb-event
     /usr/bin/ssh -F /dev/null -i ${home}/.ssh/utm_ed25519 -o IdentitiesOnly=yes \
       -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes \
       -o UserKnownHostsFile=${home}/.ssh/known_hosts -o ConnectTimeout=10 \
@@ -47,10 +51,10 @@ let
 in
 {
   launchd.user.agents.phone-connect.serviceConfig = {
-    ProgramArguments = [ "${job}" ];
+    ProgramArguments = [ "${usb-event}/bin/phone-usb-event" "${job}" ];
     LaunchEvents."com.apple.iokit.matching"."google-usb-device" = {
       IOProviderClass = "IOUSBHostDevice";
-      idVendor = 6353;
+      IOPropertyMatch.idVendor = 6353;
       IOMatchLaunchStream = true;
     };
     ThrottleInterval = 10;
