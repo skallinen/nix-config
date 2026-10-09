@@ -218,7 +218,7 @@ in
     nodejs                   # the assistant's Playwright portal tools (tools/portal, run as `node node_modules/nbb/cli.js`); the Mac has it in darwin-configuration.nix
     xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
     alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
-    android-tools            # adb: the assistant's bin/phone-pull.clj reads SMS and calls off Sami's Pixel (USB passed through from the Mac)
+    android-tools            # adb for a phone by hand; bin/phone-pull.clj no longer uses it here: the Pixel stays on the Mac and is read with `ssh mac adb` (Sami 9.10.2026)
     # VoiceMode, the Claude Code plugin (marketplace mbailey/voicemode, Sami
     # 2026-09-30): its MCP server starts as `uv run voicemode` and converts audio
     # with ffmpeg. Plugin, key and audio setup: the claudeVoiceMode activation below.
@@ -898,13 +898,21 @@ in
 
   # The phone archive (assistant repo bin/phone-pull.clj, wiki/phone-archive.md; Sami,
   # 2026-10-01: "an archive of smses on margaret that we can pull every time we hook
-  # the phone to the laptop", "also calls and durations"). Every minute `auto` asks
-  # `adb devices`, and does nothing unless one authorised phone is attached, Margaret
-  # answers on the LAN and the last good pull is over an hour old; then it reads SMS,
-  # MMS and the call log (read-only) and appends what is new to
-  # ~/assistant/state/phone on Margaret. No udev rule: systemd's 70-uaccess already
-  # gives the seat user an ACL on the phone's USB node. Away from home it skips, since
-  # the away route to Margaret goes through the Mac; `pull` by hand works anywhere.
+  # the phone to the laptop", "also calls and durations"; 9.10.2026: "triggered
+  # automatically each time the phone is hooked to the laptop"). The phone stays on the
+  # Mac (Sami 9.10.2026: "the phone we always interact through the host mac") and the
+  # script runs adb there as `ssh mac adb ...`. Two ways in, both `auto`, which does
+  # nothing unless one authorised phone is attached and Margaret answers on the LAN, and
+  # then reads SMS, MMS and the call log (read-only) and appends what is new to
+  # ~/assistant/state/phone on Margaret:
+  # - phone-pull-connect: started by the Mac's launchd agent the moment the Pixel is
+  #   attached (utm-arch/phone-connect/darwin.nix); no hourly throttle, waits up to 60 s
+  #   for adb to see the phone.
+  # - phone-pull.timer every 15 minutes, for a missed connect (VM off or asleep when the
+  #   phone was plugged in, ssh down); pulls only when the last good pull is over an
+  #   hour old, so a phone left plugged in is read hourly.
+  # Away from home both skip, since the away route to Margaret goes through the Mac and
+  # may ask 1Password (I26); `pull` by hand works anywhere.
   # The Claude usage monitor (assistant repo bin/claude-window.clj): one line every 15
   # minutes to ~/.local/state/claude-window.log, which the claude-timeline hook hands to
   # the model with every prompt (Sami, 2026-10-02). It ran as a transient unit that died
@@ -966,6 +974,11 @@ in
     Install.WantedBy = [ "default.target" ];
   };
 
+  # The minutely timer of 1 to 3 October ran adb in the VM, which needed UTM to pass the
+  # Pixel through, and a phone dropping off USB mid-transfer made QEMU abort (usbredir
+  # assert) at 10:48 and 11:49 on 3.10., taking the VM down (utm-arch
+  # wiki/vm-crashes-2026-10-03.md). Now adb runs on the Mac and USB sharing to the VM
+  # stays off, so the timer is back, every 15 minutes.
   systemd.user.services.phone-pull = {
     Unit = {
       Description = "Pull SMS and calls from the phone into the archive on Margaret";
@@ -978,11 +991,23 @@ in
       TimeoutStartSec = "30min";   # a first pull reads MMS addresses at about 1.2 s each
     };
   };
-  # No timer any more (Sami, 2026-10-03): the minutely adb in the VM needed UTM to pass
-  # the Pixel into the VM, and a phone dropping off USB mid-transfer made QEMU abort
-  # (usbredir assert) at 10:48 and 11:49 that day, taking the VM down (utm-arch
-  # wiki/vm-crashes-2026-10-03.md). adb now runs on the Mac only and USB sharing is off
-  # for the VM; phone-pull is to move to the Mac. The service stays for a manual run.
+  systemd.user.timers.phone-pull = {
+    Unit.Description = "Look for the phone every 15 minutes (catches a missed connect)";
+    Timer = { OnCalendar = "*:0/15"; RandomizedDelaySec = "30"; };
+    Install.WantedBy = [ "timers.target" ];
+  };
+  systemd.user.services.phone-pull-connect = {
+    Unit = {
+      Description = "Pull SMS and calls now: the phone was just plugged into the Mac";
+      ConditionPathExists = "%h/mac/common/projects/assistant/bin/phone-pull.clj";
+    };
+    Service = {
+      Type = "oneshot";
+      Environment = "PATH=%h/.nix-profile/bin:/usr/bin";
+      ExecStart = "%h/.nix-profile/bin/bb %h/mac/common/projects/assistant/bin/phone-pull.clj auto --min-gap 0 --wait 60";
+      TimeoutStartSec = "30min";
+    };
+  };
 
   # The focus tree (assistant tools/workday/focus.clj): every hour it appends the
   # missing days to state/focus.sqlite and rewrites out/all/ and the newest eight days
