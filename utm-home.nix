@@ -216,6 +216,7 @@ in
     i3blocks                 # the bar's status line (i3-config, bar block)
     google-chrome            # the browser; nixpkgs builds it for aarch64-linux (Sami: Nix before pacman or AUR)
     nodejs                   # the assistant's Playwright portal tools (tools/portal, run as `node node_modules/nbb/cli.js`); the Mac has it in darwin-configuration.nix
+    google-cloud-sdk         # gcloud: per-world Vertex AI projects for the assistant (8bs Gemini, 10.10.2026); one CLOUDSDK_CONFIG per world
     xrandr                   # manual screen settings; moved from pacman (utm-arch D24)
     alsa-utils               # amixer, aplay; moved from pacman (utm-arch D24)
     android-tools            # adb for a phone by hand; bin/phone-pull.clj no longer uses it here: the Pixel stays on the Mac and is read with `ssh mac adb` (Sami 9.10.2026)
