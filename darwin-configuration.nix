@@ -546,6 +546,28 @@
     };
   };
 
+  # --- Daily Dose: podcast chapter sync, twice a day ---
+  # The app cannot read the podcast feed itself (no CORS headers on the host), so a new
+  # episode plays whole, without a jump button per text, until sync-podcast.mjs stores its
+  # chapters in Firestore. Episodes arrive at no fixed time (10.10.2026: eight in one
+  # afternoon), so it runs at 06:30 and 18:30; a run missed while the Mac sleeps happens
+  # on wake. Runs here, not in the VM: only the Mac's firebase-tools holds the operator
+  # login. Sami, 2026-10-10: "make the script run every day to check".
+  launchd.user.agents.daily-dose-podcast = {
+    serviceConfig = {
+      ProgramArguments = [
+        "/bin/zsh" "-lc"
+        "cd ~/common/projects/skallinen.github.io/daily-dose && npx -y firebase-tools@15.23.0 projects:list >/dev/null && node scripts/sync-podcast.mjs --apply"
+      ];
+      StartCalendarInterval = [
+        { Hour = 6; Minute = 30; }
+        { Hour = 18; Minute = 30; }
+      ];
+      StandardOutPath = "/tmp/daily-dose-podcast.log";
+      StandardErrorPath = "/tmp/daily-dose-podcast.log";
+    };
+  };
+
   # --- Fonts ---
   fonts.packages = with pkgs; [
     nerd-fonts.roboto-mono
