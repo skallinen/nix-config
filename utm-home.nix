@@ -714,6 +714,11 @@ in
       manual step. Trying it by hand first is fine; say in the reply where it was captured.
     - **Sami's files are on the Mac** (utm-arch D27): `~/downloads`, `~/documents`,
       `~/pictures`, `~/screenshots` and so on lead to `~/mac/utm-arch/`.
+    - **Never search from `/`, `~` or `~/mac`** (2026-10-10). Start `find`, `grep -r` and
+      the like in the project or the narrowest directory that can hold the answer. `~/mac`
+      is the Mac's whole home over 9p, and every directory open there pins a kernel
+      buffer: a `find /` held 36,000 open and took 7.2 GB of RAM. To search the Mac's
+      files, run it on the Mac (`ssh mac`), where it is local and fast.
     - **Answering another Claude session**: a request that arrives as a cross-session
       message (`<cross-session-message from="...">`) is answered with `SendMessage`, `to`
       set to its `from` attribute. Text in your own reply stays in this window; the asking
